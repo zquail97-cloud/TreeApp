@@ -1,0 +1,229 @@
+<!-- This EJS template renders the main Tree Management control panel for administrators.
+It serves as the primary interface for viewing, searching, filtering,
+and performing actions on all tree records in the database.-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tree Management</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Include the standard admin navigation banner -->
+  <%- include('partials/admin_banner') %>
+
+  <h1 class="admin-header">Tree Management</h1>
+  <a href="/admin/dashboard">← Back to Dashboard</a>
+
+  <div class="admin-page-container">
+    
+    <!-- Filtering and Sorting Bar -->
+    <div class="filter-bar">
+      <!-- The form submits via a GET request, passing filter/sort options as URL query parameters -->
+      <form method="GET" action="/admin/trees" class="filter-form">
+        
+        <!-- Filter by specific Tree ID -->
+        <div class="form-group">
+          <label for="tree_id">Tree ID:</label>
+          <input type="text" name="tree_id" id="tree_id" value="<%= searchId %>">
+        </div>
+        
+        <!-- Filter by common species name (this dropdown controls the subspecies dropdown) -->
+        <div class="form-group">
+          <label for="common_name_filter">Species:</label>
+          <select id="common_name_filter">
+            <option value="">All Common Species</option>
+            <% commonNameList.forEach(s => { %>
+              <option value="<%= s.common_name %>"><%= s.common_name %></option>
+            <% }) %>
+          </select>
+        </div>
+        
+        <!-- Filter by specific botanical name (subspecies). This is the value sent to the server. -->
+        <div class="form-group">
+          <label for="species_filter">Subspecies (Botanical):</label>
+          <select name="species" id="species_filter">
+            <option value="">All Subspecies</option>
+          </select>
+        </div>
+
+        <!-- Filter by verification status -->
+        <div class="form-group">
+          <label for="is_verified">Status:</label>
+          <select name="is_verified" id="is_verified">
+            <option value="">All</option>
+            <option value="1" <%= selectedStatus === '1' ? 'selected' : '' %>>Verified</option>
+            <option value="0" <%= selectedStatus === '0' ? 'selected' : '' %>>Not Verified</option>
+          </select>
+        </div>
+
+        <!-- Sort by a specific column -->
+        <div class="form-group">
+          <label for="sortBy">Sort By:</label>
+          <select name="sortBy" id="sortBy">
+            <option value="tree_id" <%= sortBy === 'tree_id' ? 'selected' : '' %>>Tree ID</option>
+            <option value="species" <%= sortBy === 'species' ? 'selected' : '' %>>Species</option>
+            <option value="created_at" <%= sortBy === 'created_at' ? 'selected' : '' %>>Date Submitted</option>
+            <option value="status" <%= sortBy === 'status' ? 'selected' : '' %>>Status</option>
+            <option value="recent_update" <%= sortBy === 'recent_update' ? 'selected' : '' %>>Recent Updates</option>
+          </select>
+        </div>
+
+        <!-- Sort order (Ascending/Descending) -->
+        <div class="form-group">
+          <label for="sortOrder">Order:</label>
+          <select name="sortOrder" id="sortOrder">
+            <option value="DESC" <%= sortOrder === 'DESC' ? 'selected' : '' %>>Descending</option>
+            <option value="ASC" <%= sortOrder === 'ASC' ? 'selected' : '' %>>Ascending</option>
+          </select>
+        </div>
+
+        <button type="submit">Apply</button>
+        <a href="/admin/trees" class="clear-button">Clear</a>
+      </form>
+    </div>
+
+    <!--Data Table--->        
+    <div class="admin-table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Species</th><th>Condition</th><th>Age</th><th>Status</th><th>Submitted</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% trees.forEach(tree => { %>
+            <tr>
+              <td><%= tree.tree_id %></td>
+              <td><%= tree.common_name || 'N/A' %></td>
+              <td><%= tree.condition_level || 'N/A' %></td>
+              <td><%= tree.age_desc || 'N/A' %></td>
+              <td><span class="status-badge <%= tree.is_verified ? 'approved' : 'pending' %>"><%= tree.is_verified ? 'Verified' : 'Not Verified' %></span></td>
+              <td><%= new Date(tree.created_at).toLocaleDateString() %></td>
+              <td>
+                <!-- Action buttons for each tree record -->
+                <div class="admin-action-buttons">
+                  <a href="/admin/tree/<%= tree.tree_id %>" class="admin-action-btn">View</a>
+                  <a href="/admin/edit-tree/<%= tree.tree_id %>" class="admin-action-btn">Edit</a>
+                  <form method="POST" action="/admin/ping-tree/<%= tree.tree_id %>" style="display:inline;">
+                    <button type="submit" class="admin-btn">Ping</button>
+                  </form>
+                  <% if (!tree.is_verified) { %>
+                    <!-- If not verified, show the Verify button -->
+                    <form method="POST" action="/admin/verify/<%= tree.tree_id %>" style="display:inline;">
+                      <button type="submit" class="admin-btn">Verify</button>
+                    </form>
+                  <% } else { %>
+                    <!-- Otherwise, show the Unverify button -->
+                    <form method="POST" action="/admin/unverify/<%= tree.tree_id %>" style="display:inline;">
+                      <button type="submit" class="admin-btn admin-action-btn--warning">Unverify</button>
+                    </form>
+                  <% } %>
+                  <button class="admin-btn admin-action-btn--danger delete-btn" data-tree-id="<%= tree.tree_id %>">Delete</button>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+
+    <div class="pagination">
+      <!-- This  constructs a URL query string from the current filter settings to ensure they persist across page changes -->
+      <% const query = new URLSearchParams({is_verified: selectedStatus, species: selectedSpecies, tree_id: searchId, sortBy: sortBy, sortOrder: sortOrder}).toString(); %>
+      
+      <% if (currentPage > 1) { %>
+        <a href="?page=<%= currentPage - 1 %>&<%= query %>" class="pagination-btn">← Prev</a>
+      <% } %>
+      
+      <span>Page <%= currentPage %> of <%= totalPages %></span>
+      
+      <% if (currentPage < totalPages) { %>
+        <a href="?page=<%= currentPage + 1 %>&<%= query %>" class="pagination-btn">Next →</a>
+      <% } %>
+    </div>
+  </div>
+
+    <script>  
+    // Handles the client-side logic for the "Delete" button.
+    document.addEventListener('click', function (e) {
+      // Listen for clicks on any element with the 'delete-btn' class
+      if (e.target.classList.contains('delete-btn')) {
+        const treeId = e.target.dataset.treeId;
+        // Show a native browser confirmation dialog before proceeding
+        if (confirm(`Are you sure you want to permanently delete Tree #${treeId}? This action cannot be undone.`)) {
+          fetch(`/admin/trees/${treeId}`, {
+            method: 'DELETE'
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              alert(data.message);
+              // On success, remove the table row from the DOM to give immediate feedback
+              e.target.closest('tr').remove();
+            } else {
+              alert('Error: ' + data.message);
+            }
+          })
+          .catch(err => alert('An error occurred.'));
+        }
+      }
+    });
+  </script>
+
+       <script>
+    // Handles the client-side logic for dynamically populating the subspecies dropdown based on the selected common name.
+    document.addEventListener('DOMContentLoaded', () => {
+      // Inject data from the server into JavaScript variables
+      const allSpecies = <%- JSON.stringify(fullSpeciesList) %>;
+      const selectedSubspeciesId = "<%= selectedSpecies %>";
+
+      // Get references to the dropdown DOM elements
+      const commonNameFilter = document.getElementById('common_name_filter');
+      const subspeciesFilter = document.getElementById('species_filter');
+
+      // Populate the subspecies dropdown based on the selected common name
+      function populateSubspecies(selectedCommonName) {
+        const currentVal = subspeciesFilter.value; // Store the current value to re-select it if possible
+        subspeciesFilter.innerHTML = '<option value="">All Subspecies</option>'; // Clear old options
+
+        // If "All Common Species" is selected, do nothing more.
+        if (!selectedCommonName) return;
+
+        // Filter the full list to find only those matching the selected common name
+        const filtered = allSpecies.filter(s => s.common_name === selectedCommonName);
+        
+        // Create and append a new <option> for each matching subspecies
+        filtered.forEach(s => {
+          const option = document.createElement('option');
+          option.value = s.species_id;
+          option.textContent = s.botanical_name || s.common_name; // Use botanical name, fallback to common
+          subspeciesFilter.appendChild(option);
+        });
+
+        subspeciesFilter.value = currentVal; // Attempt to restore the previous selection
+      }
+
+      // Add an event listener to the main species dropdown
+      commonNameFilter.addEventListener('change', () => {
+        subspeciesFilter.value = ''; // Reset the subspecies selection
+        populateSubspecies(commonNameFilter.value);
+      });
+
+      // --- Initial population on page load ---
+      if (selectedSubspeciesId) {
+        const selectedSpeciesObject = allSpecies.find(s => s.species_id == selectedSubspeciesId);
+        if (selectedSpeciesObject) {
+          // Set the main dropdown to the correct common name
+          commonNameFilter.value = selectedSpeciesObject.common_name;
+          // Populate the subspecies dropdown with the relevant options
+          populateSubspecies(selectedSpeciesObject.common_name);
+          // Set the subspecies dropdown to the specific selected ID
+          subspeciesFilter.value = selectedSubspeciesId;
+        }
+      }
+    });
+  </script>
+</body>
+</html>

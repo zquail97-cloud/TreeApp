@@ -1,0 +1,1485 @@
+<!-- Homepage HTML/EJS that renders a map as a backdrop and displays login/signup forms for users
+ Contains most of the Javascript functions that maniplate DOM and carry out transactions with the database. -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>TreeApp – Explore Belfast’s Trees</title>
+  <!-- Links to external spreadsheets: Leaflet for mapping, FontAwesome for icons & local stylesheet-->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="no-scroll">
+
+  <script>
+    
+    const loggedInUser = <%- JSON.stringify(user || null) %>;
+  </script>
+
+
+  <!-- Sidebar Toggle Button -->
+  <button id="sidebarToggle" class="sidebar-toggle">
+    <i class="fa fa-bars"></i>
+  </button>
+
+
+  <!-- Collapsible Sidebar with options/user actions-->
+  <div id="sidebar" class="sidebar">
+    <h2>Tree Info & Options</h2>
+    <p>Welcome to TreeApp 🌳</p>
+    <p>Use the options below to filter or explore tree data.</p>
+
+
+    <!-- Notifications section: displays nearby tree update requests -->
+    <% if (typeof notifications !=='undefined' && notifications.length> 0) { %>
+      <div class="alert-notification">
+        <h3>Nearby Tree Update Requests</h3>
+        <ul>
+          <% notifications.forEach(note=> { %>
+            <li class="notification-item" data-id="<%= note.notification_id %>">
+              <%= note.message %><br>
+
+                <!-- Zoom to Tree Button -->
+                <button class="zoom-to-tree-btn" data-tree-id="<%= note.tree_id %>" title="Zoom to tree"
+                  style="background: none; border: none; cursor: pointer;">
+                  <i class="fas fa-map-pin"></i>
+                </button>
+
+                <!-- Mark as Read Button -->
+                <button class="dismiss-btn" title="Mark as read"
+                  style="background: none; border: none; cursor: pointer; margin-left: 10px;">
+                  
+                </button>
+            </li>
+            <% }) %>
+        </ul>
+      </div>
+      <% } %>
+
+        <hr>
+
+        <!-- Tree data header -->
+        <div class="collapsible-header">
+          <h3>Explore Tree Data</h3>
+          <button id="toggle-reporting-btn" class="sidebar-toggle-btn collapsed">
+            <span id="toggle-reporting-icon">▼</span>
+          </button>
+        </div>
+
+
+        <div id="reporting-controls" class="collapsed">
+
+          <!-- Main display group -->
+          <div class="control-group">
+            <label for="displayMode">Display As:</label>
+            <select id="displayMode">
+              <option value="markers">Individual Trees (Markers)</option>
+              <option value="heatmap">Density (Heatmap)</option>
+            </select>
+          </div>
+
+          <!-- Choose data to be visualised-->
+          <div class="control-group">
+            <label for="dataType">Show Data For:</label>
+            <select id="dataType">
+              <option value="all">All Trees</option>
+              <option value="health-good">Tree Health</option>
+              <option value="verification">Verified Trees</option>
+              <option value="updates">Trees with Pending Updates</option>
+              <option value="data-quality">Data Quality / Confidence</option>
+            </select>
+          </div>
+
+          <!-- Advanced filters -->
+          <div class="control-group">
+            <hr>
+            <label for="filterSpecies">Filter by Species:</label>
+            <select id="filterSpecies">
+              <option value="">Any Species</option>
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="filterCondition">Condition:</label>
+            <select id="filterCondition">
+              <option value="">Any Condition</option>
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <!-- Date Filters -->
+          <div class="date-filter-group control-group">
+            <label for="filterStartDate">Submitted After:</label>
+            <input type="date" id="filterStartDate">
+            <label for="filterEndDate">Submitted Before:</label>
+            <input type="date" id="filterEndDate">
+            <div class="date-quick-buttons">
+              <button id="btn-last-7-days" class="sidebar-btn-date">Last 7 Days</button>
+              <button id="btn-last-30-days" class="sidebar-btn-date">Last 30 Days</button>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="button-group">
+            <button id="apply-filters-btn" class="sidebar-btn-control">Apply Filters</button>
+            <button id="clear-filters-btn" class="sidebar-btn-control">Clear Filters</button>
+          </div>
+
+          <hr>
+          <div id="summary-stats-box">
+          </div>
+          <hr>
+          <div class="control-group">
+            <button id="open-chart-btn" class="sidebar-btn-control">View Chart</button>
+          </div>
+
+          <div class="list-controls">
+            <label for="sort-list-by">Sort By:</label>
+            <select id="sort-list-by">
+              <option value="default">Default</option>
+              <option value="species">Species (A-Z)</option>
+              <option value="date-newest">Date Submitted (Newest)</option>
+              <option value="condition-asc">Condition (Poor to Good)</option>
+            </select>
+          </div>
+          <div id="interactive-list-container">
+            <!-- The list of trees will be dynamically generated here by JavaScript -->
+          </div>
+
+        </div>
+
+
+        <hr>
+        <!-- User specific content: displays info of logged in user & displays submission form button, else a log in button -->
+        <div id="notificationPanel" class="notification-panel">
+          <h3>Your Account</h3>
+          <ul id="notificationList"></ul>
+        </div>
+        <% if (user) { %>
+          <p class="sidebar-user">Logged in as: <strong>
+              <%= user.name %>
+            </strong></p>
+          <p class="sidebar-role">Role: <%= user.role %>
+          </p>
+
+          <hr>
+          <a href="/notifications" id="openAccount" class="sidebar-account">📬 Account Management</a>
+
+          <% if (user.role==='admin' ) { %>
+            <a href="/admin/dashboard" class="sidebar-admin">Admin Dashboard</a>
+            <% } %>
+
+              <button id="openSubmitForm" class="sidebar-btn">Submit New Tree</button>
+              <a href="/auth/logout" class="sidebar-logout">Logout</a>
+              <% } else { %>
+                <button id="openLoginForm" class="sidebar-btn">Log In</button>
+                <% } %>
+
+  </div>
+
+  <!-- Top-left button to toggle form visibility  -->
+  <div id="map-legend" class="map-legend">
+    <button id="legend-toggle">
+      <img src="/icons/marker-legend.png" alt="Toggle Legend" />
+    </button>
+    <div class="legend-content">
+      <h4>Legend</h4>
+      <div><img src="/icons/marker-green.png" /> This tree has been verified!</div>
+      <div><img src="/icons/marker-orange.png" /> This tree is pending an update, cast your vote to verify it!</div>
+      <div><img src="/icons/marker-blue.png" /> This tree hasn't been verified, suggest an update!</div>
+    </div>
+  </div>
+
+  <!-- Tree Details Slide-Up Panel -->
+  <div id="treeDetailsOverlay" class="details-overlay form-overlay">
+    <div class="details-content">
+      <button id="closeTreeDetailsBtn" class="details-close-btn">✕</button>
+      <div id="treeDetailsInner"></div>
+    </div>
+  </div>
+
+  <div id="comparePanel" class="compare-panel">
+    <div class="compare-header">
+      <h3>Suggested Update</h3>
+      <button id="closeComparePanel">×</button>
+    </div>
+    <div id="compareContent" class="compare-content">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- Fullscreen map container -->
+  <div id="map"></div>
+
+  <!-- Overlay for login/signup form -->
+  <div class="overlay" id="authOverlay">
+    <div id="formContents">
+      <!-- Close "X" Button -->
+      <button id="closeOverlayBtn" title="Close" style="position: absolute; top: -10px; right: -30px; border: none; 
+        background: none; font-size: 3.5rem; color: #444; cursor: pointer;">x</button>
+      <h1>Welcome to TreeApp 🌳</h1>
+      <p>Explore Belfast's trees and contribute your own observations.</p>
+
+
+      <!-- Flash message for successful actions e.g. signing up or logging out -->
+      <% if (typeof flash !=='undefined' && flash) { %>
+        <div id="flashMessage" style="color: green; margin-bottom: 10px;">
+          <%= flash %>
+        </div>
+        <% } %>
+
+          <!-- Error messages e.g. invalid password -->
+          <% if (typeof error !=='undefined' && error) { %>
+            <div id="errorMessage" style="color: rgb(158, 40, 40); margin-bottom: 10px;">
+              <%= error %>
+            </div>
+            <% } %>
+
+              <!-- Conditional content: shows login/singup forms if the user is not already logged in -->
+              <% if (!user) { %>
+                <form id="authForm" method="POST" action="/auth/login">
+                  <div id="usernameField" style="display: none;">
+                    <input type="text" name="username" placeholder="Your Name">
+                  </div>
+                  <input type="email" name="email" placeholder="Email" required>
+                  <input type="password" name="password" placeholder="Password" required>
+                  <p style="text-align:center; margin-top: 1rem;">
+                    <button type="submit" id="submitBtn">Login</button>
+                    <a href="/auth/forgot-password" class="forgot-password-link">Forgot your password?</a>
+                  </p>
+                </form>
+
+                <!-- Toggle link to switch between signing in and signing up -->
+                <p id="togglePrompt">New here? <a href="#" id="toggleMode">Sign up</a></p>
+                <% } else { %>
+                  <p>Hello, <%= user.name %>!</p>
+                  <% } %>
+    </div>
+  </div>
+
+
+
+  <!-- Simplified user submission form -->
+  <div id="submitOverlay">
+    <div id="submitFormContents">
+      <button class="overlay-close-btn" id="closeSubmitOverlayBtn">x</button>
+      <h2>Submit a Tree</h2>
+
+      <!-- Tree data submission form -->
+      <form id="treeSubmitForm">
+        <label for="speciesDropdown">Species</label>
+        <select id="speciesDropdown" name="species_id" required></select>
+
+        <label for="ageDropdown">Approximate Age</label>
+        <select id="ageDropdown" name="age_id" required></select>
+
+        <label for="conditionDropdown">Condition</label>
+        <select id="conditionDropdown" name="condition_id" required></select>
+
+        <input type="hidden" id="formLatitude" name="latitude" step="any" required>
+        <input type="hidden" id="formLongitude" name="longitude" step="any" required>
+
+        <button type="button" id="syncLocationBtn">📍 Use My Location</button>
+
+        <label for="notes">Additional Notes (optional)</label>
+        <textarea name="notes" id="notes" placeholder="Anything else you'd like to share?"></textarea>
+
+        <!-- Expert Mode Toggle -->
+        <div class="form-toggle">
+        <input type="checkbox" id="submitExpertModeToggle">
+        <label for="submitExpertModeToggle">Enable Expert Mode</label>
+      </div>
+      
+       <!-- Expert Fields Container -->
+      <div id="submitExpertFields" class="expert-fields-container" style="display: none;">
+        <hr>
+        <h4>Expert Details</h4>
+        
+        <label for="botanicalSpeciesDropdown">Species (Botanical Name)</label>
+        <select id="botanicalSpeciesDropdown" name="botanical_species_id"></select>
+
+        <label for="surroundDropdown">Surroundings</label>
+        <select id="surroundDropdown" name="surround_id"></select>
+
+        <label for="diameter">Diameter (cm)</label>
+        <input type="number" id="diameter" name="diameter_cm" step="0.1" placeholder="e.g., 45.5">
+
+        <label for="spreadRadius">Spread Radius (m)</label>
+        <input type="number" id="spreadRadius" name="spread_radius_m" step="0.1" placeholder="e.g., 6.0">
+
+        <label for="height">Tree Height (m)</label>
+        <input type="number" id="height" name="tree_height_m" step="0.1" placeholder="e.g., 15.2">
+      </div>
+
+        <button type="submit">Submit Tree</button>
+      </form>
+
+      <!-- Image upload form -handled after tree submission -->
+      <form id="imageUploadForm" enctype="multipart/form-data"> 
+        <input type="hidden" id="imageTreeId" name="tree_id" value="">
+        <input type="file" name="images" multiple required>
+        <button type="submit">Upload Image(s)</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Form allowing users to suggest updates to existing trees -->
+  <div id="suggestOverlay" class="form-overlay">
+    <div id="suggestFormContents">
+      <button class="overlay-close-btn" id="closeSuggestOverlayBtn">x</button>
+      <h2>Suggest an Update</h2>
+
+      <!-- Suggest update form -->
+      <form id="suggestUpdateForm">
+        <input type="hidden" id="suggestTreeId" name="tree_id">
+
+        <label for="suggestSpecies">Species</label>
+        <select id="suggestSpecies" name="species_id" required></select>
+
+        <label for="suggestAge">Age</label>
+        <select id="suggestAge" name="age_id" required></select>
+
+        <label for="suggestCondition">Condition</label>
+        <select id="suggestCondition" name="condition_id" required></select>
+
+        <label for="suggestNotes">Notes (optional)</label>
+        <textarea id="suggestNotes" name="notes" placeholder="Explain your suggestion..."></textarea>
+
+        <!-- Expert Mode Toggle -->
+        <div class="form-toggle">
+            <input type="checkbox" id="suggestExpertModeToggle">
+            <label for="suggestExpertModeToggle">Enable Expert Mode</label>
+        </div>
+
+        <!-- Expert Fields Container -->
+        <div id="suggestExpertFields" class="expert-fields-container" style="display: none;">
+            <hr>
+            <h4>Expert Details</h4>
+            
+            <label for="suggestBotanicalSpecies">Species (Botanical Name)</label>
+            <select id="suggestBotanicalSpecies" name="botanical_species_id"></select>
+
+            <label for="suggestSurround">Surroundings</label>
+            <select id="suggestSurround" name="surround_id"></select>
+
+            <label for="suggestDiameter">Diameter (cm)</label>
+            <input type="number" id="suggestDiameter" name="diameter_cm" step="0.1" placeholder="e.g., 45.5">
+
+            <label for="suggestSpreadRadius">Spread Radius (m)</label>
+            <input type="number" id="suggestSpreadRadius" name="spread_radius_m" step="0.1" placeholder="e.g., 6.0">
+
+            <label for="suggestHeight">Tree Height (m)</label>
+            <input type="number" id="suggestHeight" name="tree_height_m" step="0.1" placeholder="e.g., 15.2">
+        </div>
+
+        <button type="submit">Submit Suggestion</button>
+      </form>
+
+      <!-- Image upload form for update -->
+      <form id="suggestImageUploadForm" enctype="multipart/form-data">
+        <input type="hidden" id="suggestImageUpdateId" name="update_id" value="">
+        <input type="file" name="images" multiple required>
+        <button type="submit">Upload Image(s)</button>
+      </form>
+
+    </div>
+  </div>
+
+  </div>
+
+  <!-- Loads Leaflet library for map view -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+
+
+  <script>
+    /*=============================================================================================*/
+    // Global Variables & State Management
+    /*=============================================================================================*/
+     
+    const map = L.map('map', {
+      zoomControl: true, maxZoom: 19, minZoom: 13
+    }).setView([54.597, -5.93], 16);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+     
+    let userLat = null;
+    let userLng = null;
+    let currentMarkers = [];
+    let userCircle = null;
+    let userIcon = null;
+    let heatLayer = null;
+    let currentDisplayMode = 'markers';
+    let lastFetchedTrees = [];
+    let chartsLoaded = false;
+    let editingTreeId = null;
+
+    google.charts.load('current', { 'packages': ['corechart'] });
+    google.charts.setOnLoadCallback(() => { chartsLoaded = true; });
+
+    /*=============================================================================================*/
+    // Core Helper Functions
+    /*=============================================================================================*/
+
+
+    // --------------------------------------------------------------------------------- Map & Marker Helpers ---------------------------------------------------------------------------------
+
+    // Function to update the user's location and 'paint' a circle around them to indiciate the range within trees will load
+    function updateUserMarker(lat, lng) {
+      if (userCircle) map.removeLayer(userCircle);
+      if (userIcon) map.removeLayer(userIcon);
+      userCircle = L.circle([lat, lng], { color: '#007BFF', fillColor: '#007BFF', fillOpacity: 0.1, radius: 300 }).addTo(map);
+      userIcon = L.marker([lat, lng], { icon: L.icon({ iconUrl: '/icons/user-icon.png', iconSize: [100, 100], iconAnchor: [12, 12] }) }).addTo(map);
+    }
+
+    // Function to set the icons and their colours for trees based on their status; verified, unverified, awaiting update etc.
+    function getMarkerIcon(isVerified, hasPendingUpdate) {
+      let iconPath = '/icons/marker-blue.png';
+      if (isVerified) iconPath = '/icons/marker-green.png';
+      else if (hasPendingUpdate) iconPath = '/icons/marker-orange.png';
+      return L.icon({ iconUrl: iconPath, iconSize: [30, 45], iconAnchor: [15, 42] });
+    }
+
+    // Function used by a reporting query which changes the colour of map tree markers based on their health.
+    // Blue: default/fallback; Green: good; Fair: orange; Red: poor.
+    // Sets their size. 
+    function getHealthMarkerIcon(condition) {
+      let iconUrl = '/icons/marker-blue.png';
+      if (condition) {
+        const lower = condition.toLowerCase();
+        if (lower.includes('good') || lower.includes('excellent')) iconUrl = '/icons/marker-green.png';
+        else if (lower.includes('fair')) iconUrl = '/icons/marker-orange.png';
+        else if (lower.includes('poor') || lower.includes('dead')) iconUrl = '/icons/marker-red.png';
+      }
+      return L.icon({ iconUrl: iconUrl, iconSize: [30, 45], iconAnchor: [15, 42] });
+    }
+
+    // Function to fetch trees which have been submitted within thirty days prior.
+    function isRecentlySubmitted(dateString) {
+      if (!dateString) return false;
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return new Date(dateString) > thirtyDaysAgo;
+    }
+
+    // Function similiar to getHealthMarkerIcon. Changes colour of tree markers for data quality search:
+    // Verified Trees: green; Flagged Trees: red; Trees With Updates: Orange.
+    // Sets their size.
+    function getDataQualityMarkerIcon(tree) {
+      if (tree.is_verified) return L.icon({ iconUrl: '/icons/marker-green.png', iconSize: [30, 45], iconAnchor: [15, 42] });
+      if (tree.flag_type && tree.flag_type !== 'none') return L.icon({ iconUrl: '/icons/marker-red.png', iconSize: [30, 45], iconAnchor: [15, 42] });
+      if (tree.has_pending_update || isRecentlySubmitted(tree.created_at)) return L.icon({ iconUrl: '/icons/marker-orange.png', iconSize: [30, 45], iconAnchor: [15, 42] });
+      return L.icon({ iconUrl: '/icons/marker-grey.png', iconSize: [30, 45], iconAnchor: [15, 42] });
+    }
+
+    // Function to format distance which is then displaced in the mini portal within the sidebar.
+    function formatDistance(km) {
+      // Return an empty string if no distance was calculated (e.g., for non-location based searches)
+      if (km === null || typeof km === 'undefined') {
+        return '';
+      }
+      // If the distance is less than 1km, show it in meters for better readability
+      if (km < 1) {
+        const meters = Math.round(km * 1000);
+        return `${meters}m away`;
+      }
+      // Otherwise, show it in kilometers with one decimal place
+      return `${km.toFixed(1)}km away`;
+    }
+
+    // Function which can be called to clear all of the current markers on screen before rerendering the default map view. 
+    function clearAllMarkers() {
+      currentMarkers.forEach(marker => marker.remove());
+      currentMarkers = [];
+    }
+
+    // Function to control scrolling through the image carousel of images uploaded alongside tree submissions and updates
+    function scrollCarousel(direction) {
+      const carousel = document.getElementById('imageCarousel');
+      if (carousel) carousel.scrollBy({ left: direction * 300, behavior: 'smooth' });
+    }
+
+
+    // --------------------------------------------------------------------------------- Data & UI Helpers ---------------------------------------------------------------------------------
+
+    // Function to determine the condition of trees, associating database values with numbers to be used in rendering functions.
+    function getConditionScore(condition) {
+      if (!condition) return 5; // Puts "N/A" or null values at the end
+
+      const lowerCaseCondition = condition.toLowerCase();
+
+      if (lowerCaseCondition.includes('dead') || lowerCaseCondition.includes('dying')) return 0;
+      if (lowerCaseCondition.includes('poor')) return 1;
+      if (lowerCaseCondition.includes('fair')) return 2;
+      if (lowerCaseCondition.includes('good')) return 3;
+      if (lowerCaseCondition.includes('excellent')) return 4;
+
+      return 5; // Default for any other case
+    }
+
+    // Function which is executed on map load and anytime a search query is executed through searching parameters.
+    // Provides a count of the total trees returned; those in good health (and as a %); 
+    // a species count, and then provides the total number of trees, those in good health and the most common species.
+    function updateSummaryStats(trees) {
+      const container = document.getElementById('summary-stats-box');
+      if (!container) return;
+
+      if (trees.length === 0) {
+        container.innerHTML = "<p>No results to summarize.</p>";
+        return;
+      }
+
+      const goodHealthCount = trees.filter(t => ['Excellent', 'Good'].includes(t.condition_level)).length;
+      const goodHealthPercent = Math.round((goodHealthCount / trees.length) * 100);
+
+      const speciesCounts = trees.reduce((acc, t) => {
+        if (t.common_name) acc[t.common_name] = (acc[t.common_name] || 0) + 1;
+        return acc;
+      }, {});
+      const mostCommonSpecies = Object.keys(speciesCounts).reduce((a, b) => speciesCounts[a] > speciesCounts[b] ? a : b, 'N/A');
+
+      container.innerHTML = `
+        <div class="summary-stat"><strong>Showing:</strong> ${trees.length} trees</div>
+        <div class="summary-stat"><strong>In Good Health:</strong> ${goodHealthPercent}%</div>
+        <div class="summary-stat"><strong>Most Common:</strong> ${mostCommonSpecies}</div>
+    `;
+    }
+
+    // Function used to draw a (Google) pie chart based on the information returned through searching queries (and on map load).
+    // Renders the chart based on a breakdown of the species returned and the condition of those species.
+    function drawConditionChart(trees, container) {
+      // Stop if the container is invalid or the library isn't ready.
+      if (!container || !google || !google.visualization) {
+        console.error("Chart container is invalid or Google Charts is not ready.");
+        return;
+      }
+
+      // Clear the container and stop if there's no data.
+      if (!trees || trees.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">No data available to display in chart.</p>';
+        return;
+      }
+
+      const conditionCounts = trees.reduce((acc, t) => {
+        const condition = t.condition_level || 'Unknown';
+        acc[condition] = (acc[condition] || 0) + 1;
+        return acc;
+      }, {});
+
+      const dataArray = [['Condition', 'Count']];
+      for (const [condition, count] of Object.entries(conditionCounts)) {
+        dataArray.push([condition, count]);
+      }
+
+      // Render chart
+      const data = google.visualization.arrayToDataTable(dataArray);
+      const options = {
+        title: 'Tree Condition Breakdown',
+        pieHole: 0.4,
+        fontName: 'DM Sans',
+        fontSize: 25
+      };
+
+      const chart = new google.visualization.PieChart(container);
+      chart.draw(data, options);
+    }
+
+    // Function to add markers thematically based on reporting parameters
+    function addMarkersThematically(trees, colorMode) {
+      clearAllMarkers();
+      const listContainer = document.getElementById('interactive-list-container');
+      const sortBy = document.getElementById('sort-list-by').value;
+
+      listContainer.innerHTML = `<h3>Showing ${trees.length} Results</h3>`;
+
+      let sortedTrees = [...trees];
+      if (sortBy === 'species') { sortedTrees.sort((a, b) => (a.common_name || '').localeCompare(b.common_name || '')); }
+      if (sortBy === 'date-newest') { sortedTrees.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); }
+      if (sortBy === 'condition-asc') { sortedTrees.sort((a, b) => getConditionScore(a.condition_level) - getConditionScore(b.condition_level)); }
+
+      const highlightListItem = (item) => {
+        document.querySelectorAll('.tree-list-item.active').forEach(i => i.classList.remove('active'));
+        if (item) item.classList.add('active');
+      };
+
+      // Loop now uses the 'sortedTrees' array.
+      sortedTrees.forEach(tree => {
+        let icon;
+        if (colorMode === 'data-quality') icon = getDataQualityMarkerIcon(tree);
+        else if (colorMode.startsWith('health')) icon = getHealthMarkerIcon(tree.condition_level);
+        else if (colorMode === 'updates') icon = L.icon({ iconUrl: '/icons/marker-orange.png' });
+        else icon = getMarkerIcon(tree.is_verified, tree.has_pending_update);
+
+        const marker = L.marker([tree.latitude, tree.longitude], { icon: icon, treeId: tree.tree_id });
+        marker.bindPopup(`<strong>${tree.common_name || 'Unknown'}</strong><br><button class="view-details-btn" data-tree-id="${tree.tree_id}">Details</button>`);
+        marker.addTo(map);
+        currentMarkers.push(marker);
+
+        const listItem = document.createElement('div');
+        listItem.className = 'tree-list-item';
+        listItem.innerHTML = `
+            <div>
+                <strong>${tree.common_name || 'Unknown'}</strong>
+                <br>
+                <small>Status: ${tree.is_verified ? 'Verified' : 'Pending'} | Condition: ${tree.condition_level || 'N/A'}</small>
+            </div>
+            <span class="distance-display">${formatDistance(tree.distance)}</span>
+        `;
+
+        listItem.addEventListener('click', () => {
+          map.setView([tree.latitude, tree.longitude], 18);
+          marker.openPopup();
+          highlightListItem(listItem);
+        });
+
+        marker.on('click', () => {
+          highlightListItem(listItem);
+          listItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        listContainer.appendChild(listItem);
+      });
+    }
+
+    // Function to dynamically populate the dropdown elements that are used for dynamic reporting.
+    function populateDropdown(selectId, apiEndpoint, valueKey, textKey, defaultOptionText = 'Any') {
+      const dropdown = document.getElementById(selectId);
+      if (!dropdown) {
+        console.error(`Dropdown element with ID '${selectId}' not found.`);
+        return;
+      }
+      fetch(apiEndpoint).then(res => res.json()).then(data => {
+        dropdown.innerHTML = `<option value="">${defaultOptionText}</option>`;
+        data.forEach(item => {
+          const option = document.createElement('option');
+          option.value = item[valueKey];
+          option.textContent = item[textKey];
+          dropdown.appendChild(option);
+        });
+      }).catch(err => console.error(`Error loading ${apiEndpoint}:`, err));
+    }
+
+    // --------------------------------------------------------------------------------- API Fetch Helpers ---------------------------------------------------------------------------------
+
+    // Function which fetches the location of trees nearby to the user, using these locations to plot markers on the map.
+    function fetchNearbyTrees() {
+      if (!userLat || !userLng) return;
+      fetch(`/api/trees/nearby?latitude=${userLat}&longitude=${userLng}`)
+        .then(res => res.json())
+        .then(trees => {
+          lastFetchedTrees = trees;
+          updateSummaryStats(trees);
+          addMarkersThematically(trees, 'status');
+        })
+        .catch(err => console.error("Error fetching nearby trees:", err));
+    }
+
+    // Function that calls update-location from api.js, updates the user's last known location in the database by storing their latitide & longitude (viaa browser).
+    function updateLocationOnServer(lat, lng) {
+      fetch('/api/update-location', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ latitude: lat, longitude: lng }) })
+        .catch(err => console.error('Error updating server location:', err));
+    }
+
+    // Fetches known tree information from the database and then renders this information in tree card popups and overlays (submission and suggestion).
+    function fetchAndShowTreeDetails(treeId) {
+  Promise.all([
+    fetch(`/api/trees/${treeId}`).then(res => {
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      return res.json();
+    }),
+    fetch(`/api/trees/${treeId}/images`).then(res => {
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      return res.json();
+    })
+  ])
+  .then(([tree, images]) => {
+    if (tree.error) throw new Error(tree.error);
+    const overlay = document.getElementById('treeDetailsOverlay');
+    const content = document.getElementById('treeDetailsInner');
+
+    function safeField(label, value, unit = '') {
+      return value != null && value !== 'null' && value !== ''
+        ? `<p><strong>${label}:</strong> ${value}${unit}</p>`
+        : '';
+    }
+
+    let detailsHTML = `
+        <h2>${tree.common_name || 'Unknown Species'}</h2>
+        <p class="botanical-name-display">${tree.botanical_name || ''}</p>
+      `;
+
+    detailsHTML += safeField('Age', tree.age_desc);
+    detailsHTML += safeField('Condition', tree.condition_level);
+    detailsHTML += safeField('Surroundings', tree.surround_type);
+    detailsHTML += safeField('Height', tree.tree_height_m, 'm');
+    detailsHTML += safeField('Spread Radius', tree.spread_radius_m, 'm');
+    detailsHTML += safeField('Diameter', tree.diameter_cm, 'cm');
+    detailsHTML += safeField('Notes', tree.notes);
+
+    if (images.length > 0) {
+  detailsHTML += `
+    <p><strong>Images:</strong></p>
+    <div class="tree-popup-image-container">
+      ${images.map(img => `
+        <img 
+          src="${img.image_url}" 
+          class="tree-popup-thumbnail" 
+          alt="Tree image. Click to enlarge." 
+          title="Click to enlarge. Taken with ${img.camera_make || 'Unknown Camera'}"
+          data-full-src="${img.image_url}"
+        >
+      `).join('')}
+    </div>
+  `;
+}
+
+    if (loggedInUser && loggedInUser.role === 'user') {
+      detailsHTML += `<button class="suggest-update-btn" data-tree-id="${tree.tree_id}">Suggest Update</button>`;
+    }
+    if (tree.has_pending_update === 1) {
+      detailsHTML += `<button class="compare-update-btn" data-tree-id="${tree.tree_id}">Compare Update</button>`;
+    }
+
+    content.innerHTML = detailsHTML;
+    overlay.classList.add('show');     
+
+  })
+  .catch(err => {
+    console.error('Error fetching tree details or images:', err);
+  });
+}
+
+
+    // Function to open the compare update panel. Fetches known (current) data saved in the database vs pending (staged) data, rendering them in a popup overlay. 
+    // Allows users to cast up and downvotes on suggested update, which is used to execute AI decision making. 
+    function openCompareUpdatePanel(treeId) {
+  fetch(`/api/trees/${treeId}/compare`)
+    .then(res => res.json())
+    .then(({ current, pending }) => {
+      const panel = document.getElementById('comparePanel');
+      const content = document.getElementById('compareContent');
+
+      // Helper to handle potentially different species structures
+      const getSpeciesDisplay = (record) => {
+        if (!record) return '—';
+        return `${record.common_name || ''}<br><small>${record.botanical_name || ''}</small>`;
+      };
+      
+      const compareField = (label, currentVal, suggestedVal) => `
+          <div class="compare-row">
+            <div class="compare-label">${label}</div>
+            <div class="compare-current">${currentVal || '—'}</div>
+            <div class="compare-arrow">→</div>
+            <div class="compare-suggested">${suggestedVal || '—'}</div>
+          </div>
+        `;
+
+      let html = '<h3>Suggested Update</h3>';
+      html += compareField('Species', getSpeciesDisplay(current), getSpeciesDisplay(pending));
+      html += compareField('Age', current.age_desc, pending.age_desc);
+      html += compareField('Condition', current.condition_level, pending.condition_level);
+      html += compareField('Surroundings', current.surround_type, pending.surround_type);
+      html += compareField('Height (m)', current.tree_height_m, pending.tree_height_m);
+      html += compareField('Spread (m)', current.spread_radius_m, pending.spread_radius_m);
+      html += compareField('Diameter (cm)', current.diameter_cm, pending.diameter_cm);
+      html += compareField('Notes', current.notes, pending.notes);
+
+      html += `
+          <div class="vote-buttons">
+            <button class="vote-btn upvote" data-update-id="${pending.update_id}" data-vote="up">👍 Upvote</button>
+            <button class="vote-btn downvote" data-update-id="${pending.update_id}" data-vote="down">👎 Downvote</button>
+          </div>
+        `;
+
+      content.innerHTML = html;
+      panel.classList.add('show');
+    })
+    .catch(err => {
+      console.error('Failed to load comparison:', err);
+    });
+}
+
+    // Function to fetch unread notifications for user's, to be displayed in the sidebar.
+    async function loadNotifications() {
+          const res = await fetch('/api/notifications');
+          const data = await res.json();
+
+          const list = document.getElementById('notificationList');
+          list.innerHTML = '';
+
+          data.notifications.forEach(note => {
+            const li = document.createElement('li');
+            li.textContent = note.message;
+            li.classList.toggle('unread', note.is_read === 0);
+            li.addEventListener('click', () => markNotificationAsRead(note.notification_id));
+            list.appendChild(li);
+          });
+        }
+
+    async function markNotificationAsRead(id) {
+          await fetch(`/api/notifications/${id}/read`, { method: 'POST' });
+          loadNotifications(); // Refresh list
+        }
+
+    /*=============================================================================================*/
+    // Main Logic - Runs on page load
+    /*=============================================================================================*/
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // --------------------------------------------------------------------------------- DOM Element References ---------------------------------------------------------------------------------
+        const sidebar = document.getElementById('sidebar');
+        const legend = document.getElementById('map-legend');
+        const authOverlay = document.getElementById('authOverlay');
+        const submitOverlay = document.getElementById('submitOverlay');
+        const suggestOverlay = document.getElementById('suggestOverlay');
+        const detailsOverlay = document.getElementById('treeDetailsOverlay');
+        const comparePanel = document.getElementById('comparePanel');
+        const chartModal = document.getElementById('chart-modal');
+        const submitExpertToggle = document.getElementById('submitExpertModeToggle');
+        const submitExpertFields = document.getElementById('submitExpertFields');
+        const suggestExpertToggle = document.getElementById('suggestExpertModeToggle');
+        const suggestExpertFields = document.getElementById('suggestExpertFields');
+
+        const speciesDropdown = document.getElementById('speciesDropdown');
+        const botanicalDropdown = document.getElementById('botanicalSpeciesDropdown');
+        const suggestSpeciesDropdown = document.getElementById('suggestSpecies');
+        const suggestBotanicalDropdown = document.getElementById('suggestBotanicalSpecies');
+
+
+        const treeForm = document.getElementById('treeSubmitForm');
+        const imageUploadForm = document.getElementById('imageUploadForm');
+        const suggestForm = document.getElementById('suggestUpdateForm');
+        const suggestImageUploadForm = document.getElementById('suggestImageUploadForm');
+
+        const imageTreeIdInput = document.getElementById('imageTreeId');
+        const suggestImageUpdateIdInput = document.getElementById('suggestImageUpdateId');
+
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const openLoginBtn = document.getElementById('openLoginForm');
+        const closeOverlayBtn = document.getElementById('closeOverlayBtn');
+        const openSubmitBtn = document.getElementById('openSubmitForm');
+        const closeSubmitOverlayBtn = document.getElementById('closeSubmitOverlayBtn');
+        const closeSuggestOverlayBtn = document.getElementById('closeSuggestOverlayBtn');
+        const syncLocationBtn = document.getElementById('syncLocationBtn');
+        const closeDetailsBtn = document.getElementById('closeTreeDetailsBtn');
+        const closeComparePanelBtn = document.getElementById('closeComparePanel');
+        const legendToggle = document.getElementById('legend-toggle');
+        const imageModal = document.getElementById('imageViewerModal');
+        const closeImageModalBtn = document.querySelector('.close-image-modal');
+
+        const displayMode = document.getElementById('displayMode');
+        const applyBtn = document.getElementById('apply-filters-btn');
+        const clearBtn = document.getElementById('clear-filters-btn');
+        const startDateInput = document.getElementById('filterStartDate');
+        const endDateInput = document.getElementById('filterEndDate');
+        const sortDropdown = document.getElementById('sort-list-by');
+        const reportingHeader = document.querySelector('.collapsible-header');
+        const reportingControls = document.getElementById('reporting-controls');
+        const toggleBtn = document.getElementById('toggle-reporting-btn');
+        const btnLast7Days = document.getElementById('btn-last-7-days');
+        const btnLast30Days = document.getElementById('btn-last-30-days');
+        const openChartBtn = document.getElementById('open-chart-btn');
+        const closeChartBtn = document.getElementById('close-chart-modal-btn');
+        const authForm = document.getElementById('authForm');
+        const usernameField = document.getElementById('usernameField');
+        const submitBtn = document.getElementById('submitBtn');
+        const togglePrompt = document.getElementById('togglePrompt');
+        let mode = 'login';
+
+    // --------------------------------------------------------------------------------- Form State Helpers ---------------------------------------------------------------------------------
+
+
+    // Resets the submission form to its initial state
+    function resetSubmitForm() {
+      editingTreeId = null;
+      document.querySelector('#submitFormContents h2').textContent = 'Submit a Tree';
+      treeForm.reset();
+      imageUploadForm.reset();
+      treeForm.style.display = 'block';
+      imageUploadForm.style.display = 'none';
+    }
+
+    // Resets the suggest update form to its initial state
+    function resetSuggestForm() {
+      suggestForm.reset();
+      suggestImageUploadForm.reset();
+      suggestForm.style.display = 'block';
+      suggestImageUploadForm.style.display = 'none';
+    }
+
+    // Populates the hidden latitude/longitude fields in the submission form. 
+    function syncFormLocation() {
+      if (userLat && userLng) {
+        document.getElementById('formLatitude').value = userLat;
+        document.getElementById('formLongitude').value = userLng;
+        syncLocationBtn.textContent = '✅ Location Synced!';
+        setTimeout(() => { syncLocationBtn.textContent = '📍 Use My Location'; }, 2000);
+      } else {
+        alert('Could not get your location. Please enable location services and try again.');
+      }
+    }
+
+
+    function updateFormMode() {
+      if (mode === 'login') {
+        // Switch to sign up
+        mode = 'signup';
+        usernameField.style.display = 'block';
+        form.action = '/auth/signup';
+        submitBtn.textContent = 'Sign Up';
+        togglePrompt.innerHTML = 'Already have an account? <a href="#" id="toggleMode">Log in</a>';
+      } else {
+        // Switch to log in
+        mode = 'login';
+        usernameField.style.display = 'none';
+        form.action = '/auth/login';
+        submitBtn.textContent = 'Login';
+        togglePrompt.innerHTML = 'New here? <a href="#" id="toggleMode">Sign up</a>';
+      }
+
+      // Re-attach toggle listener
+      attachToggleHandler();
+    }
+
+    //Function to fetch and populate botanical species names of trees based on selected common species.
+    async function updateBotanicalNames(commonNameDropdown, botanicalNameDropdown) {
+    const selectedCommonName = commonNameDropdown.options[commonNameDropdown.selectedIndex].text;
+    botanicalNameDropdown.innerHTML = '<option value="">Select a botanical name...</option>'; // Reset
+
+    if (!selectedCommonName || selectedCommonName === 'Any Species') {
+        botanicalNameDropdown.disabled = true;
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/species/botanical/${encodeURIComponent(selectedCommonName)}`);
+        if (!response.ok) throw new Error('Failed to fetch botanical names.');
+        
+        const botanicalNames = await response.json();
+        
+        if (botanicalNames.length > 0) {
+            botanicalNames.forEach(species => {
+                const option = document.createElement('option');
+                option.value = species.species_id;
+                option.textContent = species.botanical_name;
+                botanicalNameDropdown.appendChild(option);
+            });
+            botanicalNameDropdown.disabled = false;
+        } else {
+            botanicalNameDropdown.disabled = true;
+        }
+    } catch (error) {
+        console.error("Error updating botanical names:", error);
+        botanicalNameDropdown.disabled = true;
+    }
+}
+
+    function attachToggleHandler() {
+      const toggleLink = document.getElementById('toggleMode');
+      if (toggleLink) {
+        toggleLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          updateFormMode();
+        });
+      }
+    }  
+
+    async function renderMap() {
+      clearAllMarkers();
+      if (heatLayer) map.removeLayer(heatLayer);
+
+      const mode = document.getElementById('displayMode').value;
+      const selectedDataType = document.getElementById('dataType').value;
+      const speciesId = document.getElementById('filterSpecies').value;
+      const conditionId = document.getElementById('filterCondition').value;
+      const startDate = document.getElementById('filterStartDate').value;
+      const endDate = document.getElementById('filterEndDate').value;
+      currentDisplayMode = mode;
+
+      try {
+        if (mode === 'heatmap') {
+          let url = new URL(`${window.location.origin}/api/trees/heatmap/${selectedDataType}`);
+          if (speciesId) url.searchParams.append('species_id', speciesId);
+          if (conditionId) url.searchParams.append('condition_id', conditionId);
+
+          const res = await fetch(url);
+          const data = await res.json();
+          const heatPoints = data.map(p => [parseFloat(p.latitude), parseFloat(p.longitude), 0.7]);
+          heatLayer = L.heatLayer(heatPoints, { radius: 25, blur: 20, maxZoom: 17, gradient: { 0.2: 'red', 0.5: 'yellow', 1.0: 'green' }, max: 0.8 }).addTo(map);
+        } else { // mode === 'markers'
+          let url = new URL(`${window.location.origin}/api/trees/search`);
+          if (speciesId) url.searchParams.append('species_id', speciesId);
+          if (conditionId) url.searchParams.append('condition_id', conditionId);
+          if (startDate) url.searchParams.append('startDate', startDate);
+          if (endDate) url.searchParams.append('endDate', endDate);
+          if (selectedDataType === 'updates') url.searchParams.append('has_pending_updates', 'true');
+          //Ads latitude and longitude for proximity sorting
+          if (userLat && userLng) {
+            url.searchParams.append('latitude', userLat);
+            url.searchParams.append('longitude', userLng);
+          }
+
+          const res = await fetch(url);
+          const trees = await res.json();
+
+          lastFetchedTrees = trees;
+          updateSummaryStats(trees);
+          addMarkersThematically(trees, selectedDataType);
+        }
+      } catch (err) {
+        console.error('Failed to render map view:', err);
+      }
+    }
+
+    // Function to render the map based on selected filters and display mode
+    function resetMapToDefault() {
+        displayMode.value = 'markers';
+        dataType.value = 'all';
+        filterSpecies.value = '';
+        filterCondition.value = '';
+        startDateInput.value = '';
+        endDateInput.value = '';
+        sortDropdown.value = 'default';
+
+        if (heatLayer) map.removeLayer(heatLayer);
+        clearAllMarkers();
+        toggleControls();
+
+        if (userLat && userLng) updateUserMarker(userLat, userLng);
+        fetchNearbyTrees();
+        currentDisplayMode = 'markers';
+    }
+
+     function toggleControls() {
+      const markerFilters = document.getElementById('marker-filters');
+      const heatmapFilters = document.getElementById('heatmap-filters');
+      if (!markerFilters || !heatmapFilters) return;
+      const isHeatmap = displayMode.value === 'heatmap';
+      heatmapFilters.style.display = isHeatmap ? 'block' : 'none';
+      markerFilters.style.display = isHeatmap ? 'none' : 'block';
+    }
+
+     
+      // --------------------------------------------------------------------------------- Setup Calls ---------------------------------------------------------------------------------
+
+      // --------------------------------------------------------------------------------- Sidebar Filter Event Listeners --------------------------------------------------------------
+
+    // Setup Dropdowns
+      populateDropdown('filterSpecies', '/api/species', 'species_id', 'common_name', 'Any Species');
+      populateDropdown('filterCondition', '/api/condition', 'condition_id', 'condition_level', 'Any Condition');
+      populateDropdown('speciesDropdown', '/api/species', 'species_id', 'common_name');
+      populateDropdown('ageDropdown', '/api/age', 'age_id', 'age_desc');
+      populateDropdown('conditionDropdown', '/api/condition', 'condition_id', 'condition_level');
+      populateDropdown('suggestSpecies', '/api/species', 'species_id', 'common_name');
+      populateDropdown('suggestAge', '/api/age', 'age_id', 'age_desc');
+      populateDropdown('suggestCondition', '/api/condition', 'condition_id', 'condition_level');
+      populateDropdown('surroundDropdown', '/api/surround', 'surround_id', 'surround_type', 'Select surrounding...');
+      populateDropdown('suggestSurround', '/api/surround', 'surround_id', 'surround_type', 'Select surrounding...');
+
+
+      attachToggleHandler();
+      toggleControls();
+
+      if (!loggedInUser) {
+            submitOverlay.style.display = 'none';
+        }
+    
+      // Automatically hides flash messages/errors after set time ( e.g. 8 seconds) with fade animation
+      setTimeout(() => {
+      const flashMsg = document.getElementById('flashMessage');
+      const errorMsg = document.getElementById('errorMessage');
+
+      if (flashMsg) {
+        flashMsg.classList.add('fade-out');
+        setTimeout(() => flashMsg.style.display = 'none', 500);
+      }
+
+      if (errorMsg) {
+        errorMsg.classList.add('fade-out');
+        setTimeout(() => errorMsg.style.display = 'none', 500);
+      }
+
+      //Hides the overlay after 8 seconds
+    }, 8000);
+
+     // --------------------------------------------------------------------------------- Event Listeners for Static UI Elements --------------------------------------------------------------
+        if (sidebarToggle) sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+        if (legendToggle) legendToggle.addEventListener('click', () => legend.classList.toggle('open'));
+        if (openLoginBtn) openLoginBtn.addEventListener('click', () => authOverlay.style.display = 'block');
+        if (closeOverlayBtn) closeOverlayBtn.addEventListener('click', () => authOverlay.style.display = 'none');
+        if (openSubmitBtn) openSubmitBtn.addEventListener('click', () => { resetSubmitForm(); syncFormLocation(); submitOverlay.style.display = 'flex'; });
+        if (closeSubmitOverlayBtn) closeSubmitOverlayBtn.addEventListener('click', () => { resetSubmitForm(); submitOverlay.style.display = 'none'; });
+        if (syncLocationBtn) syncLocationBtn.addEventListener('click', syncFormLocation);
+        if (closeSuggestOverlayBtn) closeSuggestOverlayBtn.addEventListener('click', () => { resetSuggestForm(); suggestOverlay.style.display = 'none'; });
+        if (closeDetailsBtn) closeDetailsBtn.addEventListener('click', () => detailsOverlay.classList.remove('show'));
+        if (closeComparePanelBtn) closeComparePanelBtn.addEventListener('click', () => comparePanel.classList.remove('show'));
+        if (openChartBtn) openChartBtn.addEventListener('click', () => { chartModal.style.display = 'flex'; drawConditionChart(lastFetchedTrees, document.getElementById('modal-chart-container')); });
+        if (closeChartBtn) closeChartBtn.addEventListener('click', () => chartModal.style.display = 'none');
+        window.addEventListener('click', (event) => { if (event.target == chartModal) { chartModal.style.display = 'none'; } });
+      
+          // Sidebar Reporting & Filters
+        if (applyBtn) applyBtn.addEventListener('click', renderMap);
+        if (clearBtn) clearBtn.addEventListener('click', resetMapToDefault);
+        if (displayMode) displayMode.addEventListener('change', toggleControls);
+        if (sortDropdown) sortDropdown.addEventListener('change', () => addMarkersThematically(lastFetchedTrees, dataType.value));
+        if (reportingHeader) reportingHeader.addEventListener('click', () => { reportingControls.classList.toggle('collapsed'); toggleBtn.classList.toggle('collapsed'); });
+        if (btnLast7Days) btnLast7Days.addEventListener('click', () => {
+        const today = new Date();
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(today.getDate() - 7);
+        startDateInput.value = sevenDaysAgo.toISOString().split('T')[0];
+        endDateInput.value = today.toISOString().split('T')[0];
+        renderMap();
+        });
+        if (btnLast30Days) btnLast30Days.addEventListener('click', () => {
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+        endDateInput.value = today.toISOString().split('T')[0];
+        renderMap();
+      });
+
+    // --------------------------------------------------------------------------------- Specific Listeners for Modals and Forms --------------------------------------------------------------
+
+    treeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!document.getElementById('formLatitude').value) {
+        alert('Location is missing. Please click "Use My Location" first.');
+        return;
+      }
+      const isEditing = editingTreeId !== null;
+      const url = isEditing ? `/api/trees/${editingTreeId}` : '/api/trees';
+      const method = isEditing ? 'PUT' : 'POST';
+      const formData = new FormData(treeForm);
+
+      try {
+        const response = await fetch(url, { method, body: formData });
+        if (!response.ok) throw new Error((await response.json()).error || 'Tree operation failed');
+        const result = await response.json();
+
+        if (isEditing) {
+          alert('Tree updated successfully!');
+          submitOverlay.style.display = 'none';
+          fetchNearbyTrees();
+        } else {
+          alert('Tree submitted successfully! You may now upload images.');
+          imageTreeIdInput.value = result.tree_id;
+          treeForm.style.display = 'none';
+          imageUploadForm.style.display = 'block';
+        }
+      } catch (err) {
+        console.error('Submission error:', err);
+        alert(`An error occurred: ${err.message}`);
+      }
+    });
+
+
+    imageUploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!imageTreeIdInput.value) {
+        alert('Tree ID is missing. Cannot upload images.');
+        return;
+      }
+      const formData = new FormData(imageUploadForm);
+      try {
+        const response = await fetch('/api/upload-image', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error((await response.json()).error || 'Image upload failed.');
+        const result = await response.json();
+
+        alert(result.message || 'Images uploaded successfully!');
+        submitOverlay.style.display = 'none'; // Close the overlay
+        fetchNearbyTrees(); // Refresh the map
+      } catch (err) {
+        console.error('Image upload error:', err);
+        alert(`An error occurred: ${err.message}`);
+      }
+    });
+
+
+    suggestForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(suggestForm);
+      try {
+        const res = await fetch('/api/tree-updates', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error((await res.json()).error || 'Suggestion submission failed.');
+        const result = await res.json();
+        if (result.success && result.update_id) {
+          alert('Suggestion submitted! You may now add images.');
+          suggestImageUpdateIdInput.value = result.update_id;
+          suggestForm.style.display = 'none';
+          suggestImageUploadForm.style.display = 'block';
+        } else {
+          alert(result.message || 'Failed to save suggestion.');
+        }
+      } catch (err) {
+        console.error('Suggest form error:', err);
+        alert(`An error occurred: ${err.message}`);
+      }
+    });
+
+
+    suggestImageUploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!suggestImageUpdateIdInput.value) {
+        alert('Update ID is missing. Cannot upload images.');
+        return;
+      }
+      const formData = new FormData(suggestImageUploadForm);
+      try {
+        const response = await fetch('/api/upload-image', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error((await response.json()).error || 'Image upload failed.');
+        const result = await response.json();
+
+        alert(result.message || 'Images uploaded successfully for your suggestion!');
+        suggestOverlay.style.display = 'none'; // Close the overlay
+        fetchNearbyTrees(); // Refresh the map
+      } catch (err) {
+        console.error('Suggestion image upload error:', err);
+        alert(`An error occurred: ${err.message}`);
+      }
+    });
+
+    if (closeImageModalBtn) {
+    closeImageModalBtn.addEventListener('click', () => {
+        imageModal.style.display = 'none';
+    });
+    }
+    if (imageModal) {
+        imageModal.addEventListener('click', (event) => {
+            // Close if the user clicks on the dark background, but not the image itself
+            if (event.target === imageModal) {
+                imageModal.style.display = 'none';
+            }
+        });
+    }
+
+    // Toggle visibility of expert fields
+    if (submitExpertToggle) {
+        submitExpertToggle.addEventListener('change', () => {
+            submitExpertFields.style.display = submitExpertToggle.checked ? 'block' : 'none';
+        });
+    }
+    if (suggestExpertToggle) {
+        suggestExpertToggle.addEventListener('change', () => {
+            suggestExpertFields.style.display = suggestExpertToggle.checked ? 'block' : 'none';
+        });
+    }
+
+    // Update botanical dropdown when common name changes
+    if (speciesDropdown) {
+        speciesDropdown.addEventListener('change', () => updateBotanicalNames(speciesDropdown, botanicalDropdown));
+    }
+    if (suggestSpeciesDropdown) {
+        suggestSpeciesDropdown.addEventListener('change', () => updateBotanicalNames(suggestSpeciesDropdown, suggestBotanicalDropdown));
+    }
+
+    // --------------------------------------------------------------------------------- Event listener for sidebar toggle ----------------------------------------------------------------------
+    
+   document.body.addEventListener('click', async (e) => {
+
+            //  Handler for ".view-details-btn" in map popups 
+            const viewDetailsBtn = e.target.closest('.view-details-btn');
+            if (viewDetailsBtn) {
+                fetchAndShowTreeDetails(viewDetailsBtn.dataset.treeId);
+                return; // Stop further checks
+            }
+
+            // - Handlers for buttons inside the Details Overlay 
+            const verifyBtn = e.target.closest('.verify-tree-btn');
+            if (verifyBtn) {
+                const treeId = verifyBtn.dataset.treeId;
+                fetch(`/api/trees/${treeId}/verify`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || 'Tree verified!');
+                    document.getElementById('treeDetailsOverlay').classList.remove('show');
+                    fetchNearbyTrees();
+                })
+                .catch(err => console.error('Verification failed:', err));
+                return;
+            }
+            
+            const editBtn = e.target.closest('.edit-tree-btn');
+            if (editBtn) {
+                // Populates the main public submission form for editing
+                enterEditMode(editBtn.dataset.treeId);
+                return;
+            }
+
+            const deleteBtn = e.target.closest('.delete-tree-btn');
+            if (deleteBtn) {
+                const treeId = deleteBtn.dataset.treeId;
+                if (confirm('Are you sure you want to delete this tree? This action cannot be undone.')) {
+                    fetch(`/api/trees/${treeId}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert('Tree deleted successfully.');
+                        document.getElementById('treeDetailsOverlay').classList.remove('show');
+                        fetchNearbyTrees(); // Refresh map
+                    })
+                    .catch(err => console.error('Delete failed:', err));
+                }
+                return;
+            }
+
+            const suggestBtn = e.target.closest('.suggest-update-btn');
+            if (suggestBtn) {
+                document.getElementById('suggestTreeId').value = suggestBtn.dataset.treeId;
+                document.getElementById('suggestOverlay').style.display = 'flex';
+                return;
+            }
+
+            const compareBtn = e.target.closest('.compare-update-btn');
+            if (compareBtn) {
+                openCompareUpdatePanel(compareBtn.dataset.treeId);
+                return;
+            }
+
+             const thumbnail = e.target.closest('.tree-popup-thumbnail');
+              if (thumbnail) {
+                  const imageModal = document.getElementById('imageViewerModal');
+                  const fullImage = document.getElementById('fullImage');
+                  
+                  fullImage.src = thumbnail.dataset.fullSrc; // Get URL from data attribute
+                  imageModal.style.display = 'flex'; // Use 'flex' to center the image
+                  return; // Stop further checks
+              }
+
+            //  Handler for ".vote-btn" in the Compare Panel 
+            const voteBtn = e.target.closest('.vote-btn');
+            if (voteBtn) {
+                const updateId = voteBtn.dataset.updateId;
+                const voteType = voteBtn.dataset.vote;
+                try {
+                    const res = await fetch(`/api/updates/${updateId}/vote`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ vote: voteType })
+                    });
+                    const response = await res.json();
+                    alert(`Thank you for your ${voteType === 'up' ? 'upvote' : 'downvote'}!`);
+                    document.getElementById('comparePanel').classList.remove('show');
+                } catch (err) {
+                    console.error('Vote error:', err);
+                }
+                return;
+            }
+
+            //  Handlers for buttons in Sidebar Notifications 
+            const zoomBtn = e.target.closest('.zoom-to-tree-btn');
+            if (zoomBtn) {
+                const treeId = zoomBtn.dataset.treeId;
+                const marker = currentMarkers.find(m => m.options.treeId == treeId);
+                if (marker) {
+                    map.setView(marker.getLatLng(), 18, { animate: true });
+                    marker.openPopup();
+                } else {
+                    console.warn('Marker not found for tree:', treeId);
+                }
+                return;
+            }
+
+            const dismissBtn = e.target.closest('.dismiss-btn');
+            if (dismissBtn) {
+                const listItem = dismissBtn.closest('.notification-item');
+                const notifId = listItem?.dataset.id;
+                if (notifId) {
+                    try {
+                        const res = await fetch(`/api/notifications/${notifId}/read`, { method: 'POST' });
+                        if (res.ok) listItem.remove();
+                    } catch (err) {
+                        console.error('Error marking notification as read:', err);
+                    }
+                }
+                return;
+            }
+        });
+
+
+    // --------------------------------------------------------------------------------- Location Tracking ---------------------------------------------------------------------------------
+
+    let locationWatchId = null;
+    function startLiveLocationTracking() {
+            if (locationWatchId !== null) return; // Prevent multiple watchers
+
+            if (!navigator.geolocation) {
+                console.warn('Geolocation is not supported by this browser.');
+                // As a fallback, fetch trees for a default Belfast location
+                fetchNearbyTrees();
+                return;
+            }
+
+            locationWatchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const newLat = position.coords.latitude;
+                    const newLng = position.coords.longitude;
+
+                    // Only update if the user has moved a meaningful distance
+                    const hasMoved = !userLat || !userLng || (Math.abs(userLat - newLat) > 0.0001 || Math.abs(userLng - newLng) > 0.0001);
+
+                    userLat = newLat;
+                    userLng = newLng;
+
+                    if (hasMoved) {
+                        console.log('User location updated:', userLat, userLng);
+                        updateUserMarker(userLat, userLng);
+                        updateLocationOnServer(userLat, userLng);
+                        // Refresh nearby trees only if no special filter is active
+                        if (currentDisplayMode === 'markers' && document.getElementById('dataType').value === 'all') {
+                            fetchNearbyTrees();
+                        }
+                    }
+                },
+                (error) => {
+                    console.warn('Geolocation tracking error:', error.message);
+                    // Handle cases where user denies location permission
+                    if(userLat === null) {
+                        fetchNearbyTrees(); // Load default view
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 10000, // Don't use a cached position older than 10 seconds
+                    timeout: 20000 // Give up after 20 seconds
+                }
+            );
+        }
+
+    // Start tracking as soon as the page is ready.
+    startLiveLocationTracking();
+      });
+
+</script>
+
+
+    <div id="chart-modal" class="chart-modal">
+  <div class="chart-modal-content">
+    <span id="close-chart-modal-btn" class="close-btn">×</span>
+    <!--- The large chart will be rendered inside this div --->
+    <div id="modal-chart-container"></div>
+  </div>
+</div>
+
+<!-- The Modal for displaying the full-size image -->
+<div id="imageViewerModal" class="image-modal" style="display:none;">
+  <span class="close-image-modal">&times;</span>
+  <img class="image-modal-content" id="fullImage">
+</div>
+
+</body>
+
+</html>

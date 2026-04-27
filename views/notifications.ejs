@@ -1,0 +1,44 @@
+<!-- EJS template for the account management page with notifications and password reset functionality. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Account Management – TreeApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+    <%- include('partials/account_banner') %> 
+  <div class="account-wrapper">
+    <header class="account-header">
+      <h2> Dashboard</h2>
+      
+    </header>
+
+    <!-- Button redirecting user to their inbox -->
+    <h3>Your Notifications</h3>
+    <a href="/inbox" class="account-inbox">📬 Inbox</a>
+
+    <!-- Button redirecting user to their submissions -->
+    <h3> Your submissions </h3>
+    <a href="/my-submissions" class="account-submissions">🌳 My Submissions</a>
+
+    <!-- Section for password reset functionality -->
+    <section class="account-section">
+        <h3>🔐 Password Reset</h3>
+        <p>If you'd like to reset your password, click below and we'll generate a secure reset link for you.</p>
+
+        <form id="resetRequestForm" action="/auth/forgot-password" method="POST" style="display: none;">
+          <input type="hidden" name="email" value="<%= user?.user_email %>">
+        </form>
+
+        <button onclick="document.getElementById('resetRequestForm').submit()" class="account-reset">
+          Send Reset Link
+        </button>
+      </section>
+
+
+  </div>
+
+</body>
+</html>

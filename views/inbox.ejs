@@ -1,0 +1,86 @@
+<!-- EJS page to render a user's messages/notifications. Provides users with read and delete functions to manage their inbox.-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Inbox – TreeApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <%- include('partials/account_banner') %> 
+
+  <div class="account-wrapper">
+    <header class="account-header">
+      <h2>📬 Inbox</h2>
+      <a href="/notifications" style="color: black;">← Back to Account</a>
+    </header>
+
+    <section class="account-section">
+      <h3>Your Notifications</h3>
+      <% if (notifications.length === 0) { %>
+        <!-- Renders a simple message if the user has no notifications. -->
+        <p class="empty-state">You have no notifications yet.</p>
+      <% } else { %>
+        <ul class="notification-list">
+          <% notifications.forEach(n => { %>
+            <li class="notification <%= n.is_read ? 'read' : 'unread' %>" data-id="<%= n.notification_id %>">
+              <p><%= n.message %></p>
+              <!-- Displays the date and type of notification, with options to mark as read or delete. -->
+              <small><%= new Date(n.created_at).toLocaleString() %> – <%= n.type.replace(/_/g, ' ') %></small>
+              <div class="notification-actions">
+                <% if (!n.is_read) { %>
+                  <button class="mark-read-btn">✓ </button>
+                <% } %>
+                <button class="delete-btn">🗑 </button>
+              </div>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </section>
+  </div>
+
+  <script>
+    // JavaScript to handle marking notifications as read and deleting them
+
+    // Handle mark as read button click
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const li = btn.closest('.notification');
+          const id = li.dataset.id;
+
+          const res = await fetch(`/api/notifications/${id}/read`, {
+            method: 'POST'
+          });
+
+          if (res.ok) {
+            li.classList.remove('unread');
+            li.classList.add('read');
+            btn.remove(); // remove mark-read button
+          }
+        });
+      });
+
+      // Handle delete button click
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm('Are you sure you want to delete this notification?')) return;
+
+          const li = btn.closest('.notification');
+          const id = li.dataset.id;
+
+          const res = await fetch(`/api/notifications/${id}`, {
+            method: 'DELETE'
+          });
+
+          if (res.ok) {
+            li.remove();
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

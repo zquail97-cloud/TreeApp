@@ -1,0 +1,121 @@
+<!-- This is the EJS page that is rendered when an admin clicks to render a specific tree through the admin_tree_management.ejs page.
+ Allows admins to edit the core data related to a specific tree, such as species, subspecies, condition, age and location. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Tree – <%= tree.tree_id %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('partials/admin_banner') %>
+
+    <h1 class="admin-header">Edit Tree #<%= tree.tree_id %></h1>
+    <a href="/admin/trees">← Back to Tree Management</a>
+
+    <div class="admin-page-container">
+        
+        <% if (error && error.length > 0) { %><div class="flash-message error"><%= error %></div><% } %>
+        <% if (success && success.length > 0) { %><div class="flash-message"><%= success %></div><% } %>
+
+        <div class="admin-section">
+            <form method="POST" action="/admin/edit-tree/<%= tree.tree_id %>" class="edit-form">
+                
+                <div class="form-group">
+                    <label for="species_common_name">Species (Common Name):</label>
+                    <select id="species_common_name">
+                        <option value="">Select a Species</option>
+                        <% speciesList.forEach(s => { %>
+                            <option value="<%= s.common_name %>"><%= s.common_name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="species_id">Subspecies (Botanical Name):</label>
+                    <select name="species_id" id="species_id" required>
+                        <!-- Populated by Javascript -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="age_id">Age:</label>
+                    <select name="age_id" id="age_id" required>
+                        <% ageList.forEach(a => { %><option value="<%= a.age_id %>" <%= tree.age_id == a.age_id ? 'selected' : '' %>><%= a.age_desc %></option><% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="condition_id">Condition:</label>
+                    <select name="condition_id" id="condition_id" required>
+                        <% conditionList.forEach(c => { %><option value="<%= c.condition_id %>" <%= tree.condition_id == c.condition_id ? 'selected' : '' %>><%= c.condition_level %></option><% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group half-width">
+                    <label for="latitude">Latitude:</label>
+                    <input type="number" step="any" name="latitude" id="latitude" value="<%= tree.latitude %>" required>
+                </div>
+
+                <div class="form-group half-width">
+                    <label for="longitude">Longitude:</label>
+                    <input type="number" step="any" name="longitude" id="longitude" value="<%= tree.longitude %>" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="notes">Notes:</label>
+                    <textarea name="notes" id="notes" rows="4"><%= tree.notes || '' %></textarea>
+                </div>
+
+                <div class="form-actions full-width">
+                    <button type="submit" class="admin-btn">Save Changes</button>
+                    <a href="/admin/tree/<%= tree.tree_id %>" class="admin-button">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to handle dynamic population of subspecies based on selected common name
+        document.addEventListener('DOMContentLoaded', () => {
+            const allSubspecies = <%- JSON.stringify(subspeciesList) %>;
+            const currentTree = <%- JSON.stringify(tree) %>;
+            
+            const commonNameSelect = document.getElementById('species_common_name');
+            const subspeciesSelect = document.getElementById('species_id');
+
+            function populateSubspecies(selectedCommonName) {
+                subspeciesSelect.innerHTML = ''; // Clear existing options
+                
+                const filtered = allSubspecies.filter(s => s.common_name === selectedCommonName);
+                
+                filtered.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s.species_id;
+                    option.textContent = s.botanical_name || s.common_name; // Fallback to common name if no botanical
+                    subspeciesSelect.appendChild(option);
+                });
+            }
+
+            // Event listener for the main species dropdown
+            commonNameSelect.addEventListener('change', () => {
+                populateSubspecies(commonNameSelect.value);
+            });
+
+            // Initial population of subspecies dropdown
+            // Find the common name of the currently selected tree
+            const initialSubspecies = allSubspecies.find(s => s.species_id === currentTree.species_id);
+            if (initialSubspecies) {
+                // Set the main dropdown to the correct common name
+                commonNameSelect.value = initialSubspecies.common_name;
+                
+                // Trigger the population of the subspecies dropdown
+                populateSubspecies(initialSubspecies.common_name);
+                
+                // Set the subspecies dropdown to the correct botanical name
+                subspeciesSelect.value = currentTree.species_id;
+            }
+        });
+    </script>
+</body>
+</html>

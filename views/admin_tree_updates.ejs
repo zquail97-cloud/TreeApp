@@ -1,0 +1,304 @@
+<!-- This EJS provides admins with an audit of all user submitted updates to trees and serves as the main portal for AI decision making on the app  -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Tree Update History</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <%- include('partials/admin_banner') %>
+    <h1 class="admin-header">Tree Update Portal</h1>
+    <a href="/admin/dashboard">← Back to Dashboard</a>
+    <div class="admin-page-container">
+
+      <!-- AI trigger Section -->
+      <div class="admin-actions-header">
+        <p>Updates below will be processed automatically after 5 votes. You can override this and process all pending
+          updates immediately.</p>
+        <button id="trigger-ai-btn" class="admin-btn-primary">🤖 Process All Pending AI Updates</button>
+      </div>
+
+      <!-- Pending update data table-->
+      <div class="admin-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tree ID</th>
+              <th>Status</th>
+              <th>User</th>
+              <th>Species</th>
+              <th>Details</th>
+              <th>Votes (👍/👎)</th>
+              <th>AI Decision</th>
+              <th>Submitted</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+                <tbody>
+          <% if (updates.length === 0) { %>
+              <tr>
+                  <td colspan="9">No update history found.</td>
+              </tr>
+          <% } else { %>
+              <% updates.forEach(update => { %>
+                  <tr>
+                      <!-- Tree ID -->
+                      <td>
+                          <a href="/admin/tree/<%= update.tree_id %>" title="View Tree Details"><%= update.tree_id %></a>
+                      </td>
+
+                      <!-- Status  -->
+                      <td>
+                          <% const status = (update.status || 'pending').toLowerCase(); %>
+                          <span class="status-badge <%= status %>">
+                              <%= status.charAt(0).toUpperCase() + status.slice(1) %>
+                          </span>
+                      </td>
+
+                      <!-- User -->
+                      <td>
+                          <%= update.user_name || 'Unknown' %>
+                      </td>
+
+                      <!-- Species -->
+                      <td>
+                          <%= update.common_name || '—' %>
+                          <% if (update.botanical_name) { %>
+                              <br><small><%= update.botanical_name %></small>
+                          <% } %>
+                      </td>
+
+                      <!-- Details -->
+                      <td>
+                          <small><b>Age:</b> <%= update.age_desc || '—' %></small><br>
+                          <small><b>Cond:</b> <%= update.condition_level || '—' %></small><br>
+                          <small><b>H/S/D:</b> <%= update.tree_height_m || '?' %>m / <%= update.spread_radius_m || '?' %>m / <%= update.diameter_cm || '?' %>cm</small><br>
+                          <small><b>Surr:</b> <%= update.surround_type || '—' %></small>
+                      </td>
+
+                      <!-- Votes -->
+                      <td>
+                          <%= update.upvotes || 0 %> / <%= update.downvotes || 0 %>
+                      </td>
+
+                      <!-- AI Decision (Clickable) -->
+                      <td 
+                          class="<%= update.ai_justification ? 'clickable-note' : '' %>" 
+                          data-full-text="<%= update.ai_justification || 'No justification provided.' %>"
+                          title="<%= update.ai_justification ? 'Click to see full justification' : '' %>"
+                      >
+                          <% if (update.ai_decision) { %>
+                              <span class="ai-decision <%= update.ai_decision %>">
+                                  <%= update.ai_decision %>
+                              </span>
+                              <br><small>Confidence: <strong><%= (update.ai_confidence * 100).toFixed(0) %>%</strong></small>
+                          <% } else { %>
+                              N/A
+                          <% } %>
+                      </td>
+
+                      <!-- Submitted Date -->
+                      <td>
+                          <%= new Date(update.submitted_at).toLocaleDateString() %>
+                      </td>
+
+                      <!-- Actions -->
+                      <td>
+                          <div class="admin-action-buttons">
+                              <button class="admin-btn compare-btn" data-update-id="<%= update.update_id %>">Compare</button>
+                              <% if ((update.status || 'pending') === 'pending') { %>
+                                  <button class="admin-btn approve-btn" data-update-id="<%= update.update_id %>">Approve</button>
+                                  <button class="admin-btn reject-btn" data-update-id="<%= update.update_id %>">Reject</button>
+                              <% } %>
+                          </div>
+                      </td>
+                  </tr>
+              <% }) %>
+          <% } %>
+      </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Compare Modal HTML Structure -->
+    <div id="compareModal" class="compare-modal">
+      <div class="compare-modal-content">
+        <span id="closeCompareModal" class="compare-modal-close">&times;</span>
+        <h2>Comparing Update</h2>
+        <div id="compareModalBody" class="compare-grid">
+          <!-- Content will be injected by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <div id="imageViewerModal" class="image-viewer-modal">
+      <span class="image-viewer-close">&times;</span>
+      <img class="image-viewer-content" id="imageViewerContent">
+    </div>
+
+
+    <div id="justificationModal" class="admin-modal" style="display: none;">
+      <div class="admin-modal-content">
+        <span id="closeJustificationModal" class="admin-modal-close">&times;</span>
+        <h2>AI Justification</h2>
+        <p id="justificationModalText"></p>
+      </div>
+    </div>
+
+
+
+
+
+    <script>
+    /**
+     * This is the unified script for the Tree Update History page
+     * It handles all client-side interactions, including modals and admin actions
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+        // Get references to all modal elements 
+        const compareModal = document.getElementById('compareModal');
+        const compareModalBody = document.getElementById('compareModalBody');
+        const closeCompareModalBtn = document.getElementById('closeCompareModal');
+
+        const imageViewerModal = document.getElementById('imageViewerModal');
+        const imageViewerContent = document.getElementById('imageViewerContent');
+        const closeImageViewerBtn = document.querySelector('.image-viewer-close');
+        const justificationModal = document.getElementById('justificationModal');
+        const justificationModalText = document.getElementById('justificationModalText');
+        const closeJustificationModalBtn = document.getElementById('closeJustificationModal');
+
+
+        // Main Delegated Event Listener for the entire page        
+        document.body.addEventListener('click', async (e) => {
+            const target = e.target;
+
+            //  Handle "Compare" button clicks 
+            if (target.classList.contains('compare-btn')) {
+                const updateId = target.dataset.updateId;
+                try {
+                    const res = await fetch(`/admin/compare-update/${updateId}`);
+                    if (!res.ok) throw new Error('Failed to fetch comparison data.');
+                    
+                    const { current, suggested, images } = await res.json();
+                    
+                    let imageHTML = '';
+                    if (images && images.length > 0) {
+                        imageHTML = `
+                            <div class="field-label" style="grid-column: 1 / -1;">Submitted Images (click to enlarge):</div>
+                            <div class="image-carousel-container" style="grid-column: 1 / -1;">
+                                <div class="image-carousel">
+                                    ${images.map(img => `<img src="${img.image_url}" class="carousel-image-thumb" alt="Update thumbnail" data-full-src="${img.image_url}">`).join('')}
+                                </div>
+                            </div>`;
+                    } else {
+                        imageHTML = `<div class="field-label" style="grid-column: 1 / -1;">No images submitted with this update.</div>`;
+                    }
+
+                    const getSpeciesDisplay = (record) => {
+                        if (!record) return 'N/A';
+                        return `${record.species_name || ''}<br><small>${record.botanical_name || ''}</small>`;
+                    };
+
+                    compareModalBody.innerHTML = `
+                        <div><h3>Current Data</h3></div>
+                        <div><h3>Suggested Update</h3></div>
+                        <div class="current-data"><div class="field-label">Species</div><div>${getSpeciesDisplay(current)}</div></div>
+                        <div class="suggested-data"><div class="field-label">Species</div><div>${getSpeciesDisplay(suggested)}</div></div>
+                        <div class="current-data"><div class="field-label">Age</div><div>${current?.age_desc || 'N/A'}</div></div>
+                        <div class="suggested-data"><div class="field-label">Age</div><div>${suggested?.age_desc || 'N/A'}</div></div>
+                        <div class="current-data"><div class="field-label">Condition</div><div>${current?.condition_level || 'N/A'}</div></div>
+                        <div class="suggested-data"><div class="field-label">Condition</div><div>${suggested?.condition_level || 'N/A'}</div></div>
+                        <div class="current-data"><div class="field-label">Surroundings</div><div>${current?.surround_type || 'N/A'}</div></div>
+                        <div class="suggested-data"><div class="field-label">Surroundings</div><div>${suggested?.surround_type || 'N/A'}</div></div>
+                        <div class="current-data"><div class="field-label">Height (m)</div><div>${current?.tree_height_m || 'N/A'}</div></div>
+                        <div class="suggested-data"><div class="field-label">Height (m)</div><div>${suggested?.tree_height_m || 'N/A'}</div></div>
+                        <div class="current-data"><div class="field-label">Spread (m)</div><div>${current?.spread_radius_m || 'N/A'}</div></div>
+                        <div class="suggested-data"><div class="field-label">Spread (m)</div><div>${suggested?.spread_radius_m || 'N/A'}</div></div>
+                        <div class="current-data"><div class="field-label">Diameter (cm)</div><div>${current?.diameter_cm || 'N/A'}</div></div>
+                        <div class="suggested-data"><div class="field-label">Diameter (cm)</div><div>${suggested?.diameter_cm || 'N/A'}</div></div>
+                        <div class="current-data"><div class="field-label">Notes</div><div>${current?.notes || 'N/A'}</div></div>
+                        <div class="suggested-data"><div class="field-label">Notes</div><div>${suggested?.notes || 'N/A'}</div></div>
+                        ${imageHTML}
+                    `;
+                    compareModal.style.display = 'block';
+                } catch (err) {
+                    console.error('Compare button error:', err);
+                    alert('Error: Could not load data for comparison.');
+                }
+            }
+
+            //  Handle opening the image viewer from a thumbnail 
+            if (target.classList.contains('carousel-image-thumb')) {
+                imageViewerContent.src = target.dataset.fullSrc;
+                imageViewerModal.style.display = 'flex';
+            }
+
+            //  Handle clicks on clickable notes/justification 
+            if (target.closest('.clickable-note')) {
+            const clickableCell = target.closest('.clickable-note');
+            const justificationText = clickableCell.dataset.fullText;
+            
+            // Populate the modal with the text and display it
+            justificationModalText.textContent = justificationText;
+            justificationModal.style.display = 'flex';
+        }
+
+            //  Handle manual approve/reject clicks 
+            if (target.classList.contains('approve-btn') || target.classList.contains('reject-btn')) {
+                const updateId = target.dataset.updateId;
+                const action = target.classList.contains('approve-btn') ? 'approve' : 'reject';
+                if (confirm(`Are you sure you want to manually ${action} this update?`)) {
+                    try {
+                        const res = await fetch(`/admin/tree-updates/${updateId}/${action}`, { method: 'POST' });
+                        if (res.ok) {
+                            target.closest('tr').remove();
+                            alert(`Update ${action}d successfully.`);
+                        } else {
+                            const data = await res.json();
+                            alert('Failed to process update: ' + (data.error || 'Unknown error'));
+                        }
+                    } catch (err) {
+                        console.error('Approve/Reject error:', err);
+                        alert('An error occurred.');
+                    }
+                }
+            }
+        }); 
+
+        // Logic to close ALL modals
+        closeCompareModalBtn.addEventListener('click', () => { compareModal.style.display = 'none'; });
+        closeImageViewerBtn.addEventListener('click', () => { imageViewerModal.style.display = 'none'; });
+        closeJustificationModalBtn.addEventListener('click', () => { justificationModal.style.display = 'none'; });
+        window.addEventListener('click', (e) => {
+            if (e.target == compareModal) { compareModal.style.display = 'none'; }
+            if (e.target == imageViewerModal) { imageViewerModal.style.display = 'none'; }
+            if (e.target == justificationModal) { justificationModal.style.display = 'none'; }
+        });
+
+        // Listener for the AI Trigger Button (this is set up once)
+        document.getElementById('trigger-ai-btn').addEventListener('click', async () => {
+            if (confirm('Are you sure you want to trigger AI processing for all pending updates?')) {
+                try {
+                    const res = await fetch('/admin/trigger-ai-all', { method: 'POST' });
+                    const data = await res.json();
+                    alert(data.message || 'Processing started.');
+                    window.location.reload();
+                } catch (err) {
+                    console.error('Error triggering AI:', err);
+                    alert('An error occurred. Check the console for details.');
+                }
+            }
+        });
+    });
+</script>
+
+
+
+
+</body>
+
+</html>

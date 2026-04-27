@@ -1,0 +1,57 @@
+<!-- EJS page responsible for rendering the CSV upload web page, accessed via the admin dashboard. Contains JS allows for CSV files to be uploaded and staged before entry into the system -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CSV Upload</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/admin_banner') %>
+
+  <!-- Display any success or error messages from the server -->
+    <% if (error && error.length > 0) { %>
+    <div class="alert alert-danger"><%= error %></div>
+      <% } %>
+      <% if (success && success.length > 0) { %>
+          <div class="alert alert-success"><%= success %></div>
+      <% } %>
+
+  <div class="admin-page-container">
+    <h1 class="admin-header">Upload Tree Data via CSV</h1>
+    <a href="/admin/dashboard">← Back to Dashboard</a>
+
+    
+    <div class="admin-section">
+      <h3>Instructions</h3>
+      <p>Please upload a CSV file with the following columns. The column headers must match exactly.</p>
+      <code>tree_id, common_name, botanical_name, age_desc, condition_level, vigour_level, tree_height_m, spread_radius_m, diameter_cm, latitude, longitude, notes, created_at, is_verified</code>
+      <p><strong>Note:</strong> `tree_id` and `botanical_name` will be ignored on import, but are needed for format consistency.</p>
+    </div>
+
+    <div class="admin-section">
+      <h3>Upload File</h3>
+      <!-- The form must have this enctype for file uploads -->
+      <form method="POST" action="/admin/csv-upload" enctype="multipart/form-data" class="csv-upload-form">
+        <label for="csvFileInput" class="file-upload-label">Choose CSV File</label>
+        <!-- The actual file input is hidden for styling purposes -->
+        <input type="file" name="csvFile" id="csvFileInput" class="file-input" accept=".csv" required>
+        <span id="fileName" class="file-name">No file chosen</span>
+        <button type="submit" class="admin-btn">Upload and Process</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // JavaScript to handle file input display
+    document.getElementById('csvFileInput').addEventListener('change', function() {
+      const fileNameDisplay = document.getElementById('fileName');
+      if (this.files.length > 0) {
+        fileNameDisplay.textContent = this.files[0].name;
+      } else {
+        fileNameDisplay.textContent = 'No file chosen';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!-- This EJS page fetches and renders the details of a selected tree and displays the location of the tree on a contained leaflet map.-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Tree Details – <%= tree.tree_id %>
+  </title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <%- include('partials/admin_banner') %>
+
+    <h1 class="admin-header">Tree Details</h1>
+    <a href="/admin/trees">← Back</a>
+
+    <div class="details-layout">
+      <div class="details-card">
+        <p><strong>Tree ID:</strong>
+          <%= tree.tree_id %>
+        </p>
+        <p><strong>Species:</strong>
+          <%= tree.species_name || 'Unknown' %>
+          <% if (tree.botanical_name) { %>
+            <br><small style="color: #555;"><em><%= tree.botanical_name %></em></small>
+          <% } %>
+        </p>
+        <p><strong>Flagged For:</strong>
+          <%= tree.flag_type || 'None' %>
+        </p>
+        <p><strong>Submitted:</strong>
+          <%= new Date(tree.created_at).toLocaleDateString() %>
+        </p>
+        <p><strong>Change Log:</strong>
+          <%= tree.tree_change_log || 'N/A' %>
+        </p>
+        <p><strong>Diameter (cm):</strong>
+          <%= tree.diameter_cm ?? 'Unknown' %>
+        </p>
+        <p><strong>Spread Radius (m):</strong>
+          <%= tree.spread_radius_m ?? 'Unknown' %>
+        </p>
+        <p><strong>Height (m):</strong>
+          <%= tree.tree_height_m ?? 'Unknown' %>
+        </p>
+        <p><strong>Age:</strong>
+          <%= tree.age_desc || 'Unknown' %>
+        </p>
+        <p><strong>Vigour:</strong>
+          <%= tree.vigour_level || 'Unknown' %>
+        </p>
+        <p><strong>Condition:</strong>
+          <%= tree.condition_level || 'Unknown' %>
+        </p>
+        <p><strong>Surroundings:</strong>
+          <%= tree.surround_type || 'Unknown' %>
+        </p>
+
+        <p><strong>Coordinates:</strong>
+          <%= tree.latitude %>, <%= tree.longitude %>
+        </p>
+        <p><strong>Notes:</strong>
+          <%= tree.notes || 'N/A' %>
+        </p>
+        <a href="/tree-history/<%= tree.tree_id %>" class="admin-button view-history">View History</a>
+
+        <!-- Image Gallery Section-->
+        <% if (tree.images && tree.images.length > 0) { %>
+        <p><strong>Images (click to enlarge):</strong></p>
+        <div class="image-carousel-container">
+            <div class="image-carousel">
+                <% tree.images.forEach(img => { %>
+                    <img src="<%= img.image_url %>" class="carousel-image-thumb" alt="Tree thumbnail" data-full-src="<%= img.image_url %>">
+                <% }) %>
+            </div>
+        </div>
+      <% } else { %>
+        <p><strong>Images:</strong> No images available for this tree.</p>
+      <% } %>
+    </div> 
+
+    <!-- Renders map for placing tree marker-->
+    <div id="treeMap" class="map-card"></div>
+  </div>
+
+  <!-- Modal to render enlarged images-->
+   <div id="imageViewerModal" class="image-viewer-modal">
+    <span class="image-viewer-close">&times;</span>
+    <img class="image-viewer-content" id="imageViewerContent">
+  </div>
+
+     <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Leaflet Map Logic 
+      const lat = parseFloat("<%= tree.latitude || '0' %>");
+      const lng = parseFloat("<%= tree.longitude || '0' %>");
+      const map = L.map('treeMap').setView([lat, lng], 17);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+      L.marker([lat, lng]).addTo(map).bindPopup("Tree ID: <%= tree.tree_id %>").openPopup();
+
+      //  Image Viewer Modal Logic 
+      const imageViewerModal = document.getElementById('imageViewerModal');
+      const imageViewerContent = document.getElementById('imageViewerContent');
+      const closeImageViewerBtn = document.querySelector('#imageViewerModal .image-viewer-close');
+
+      // Main click listener for the page
+      document.body.addEventListener('click', (e) => {
+          if (e.target.classList.contains('carousel-image-thumb')) {
+              imageViewerContent.src = e.target.dataset.fullSrc;
+              imageViewerModal.style.display = 'flex';
+          }
+      });
+
+      // Listeners to close the modal
+      if(closeImageViewerBtn) {
+        closeImageViewerBtn.addEventListener('click', () => { imageViewerModal.style.display = 'none'; });
+      }
+      window.addEventListener('click', (e) => {
+          if (e.target == imageViewerModal) {
+              imageViewerModal.style.display = 'none';
+          }
+      });
+    });
+  </script>
+
+
+</body>
+
+</html>

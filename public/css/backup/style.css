@@ -1,0 +1,2671 @@
+*** Basic Layout and Font Setup ***
+body.no-scroll {
+  overflow: hidden !important;
+}
+
+/* You can now have a more general body style for all other pages */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Inherit DM Sans globally */
+*,
+*::before,
+*::after {
+  font-family: inherit;
+}
+
+.admin-header {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.admin-section {
+  margin-top: 2rem;
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+/**** Map container ****/
+#map {
+  height: 100vh;
+  width: 100vw;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* .leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+} */
+
+/**** Form overlay ****/
+.overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  width: 90%;
+  height: 40%;
+  max-width: 800px;
+  max-height: 2000px;
+  text-align: center;
+}
+
+/**** Form header styling  ****/
+.overlay h1 {
+  margin-top: 100px;
+  font-size: 4rem;
+}
+
+.overlay p {
+  margin-top: 70px;
+  font-size: 2.5rem;
+}
+
+/**** Buttons/links in overlay ****/
+.overlay a {
+  display: inline-block;
+  margin: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
+  background: #2e7d32;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.overlay a:hover {
+  background: #1b5e20;
+}
+
+/**** Input field styles  ****/
+.overlay input {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px 14px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #f2f2f2;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease;
+}
+
+.overlay input:focus {
+  outline: none;
+  background-color: #e9e9e9;
+}
+
+/**** Submit Button styles  ****/
+.overlay button {
+  display: block;
+  margin: 16px auto 0;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #2e7d32;
+  background-color: #e0f2e9;
+  /* light green background */
+  border: 1px solid #ccc;
+  /* light grey outline */
+  border-radius: 8px;
+  width: 160px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.overlay button:hover {
+  background-color: #c8e6c9;
+  border-color: none;
+}
+
+#closeOverlayBtn:hover {
+  color: #000;
+}
+
+.close-overlay:hover {
+  color: #333;
+}
+
+/**** Handles styling tree submission form overlay ****/
+/* Overlay background for submit form */
+#submitOverlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(240, 248, 255, 0.9);
+  /* soft white/blue tone */
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Form container */
+#submitFormContents,
+.form-overlay {
+  background-color: #ffffff;
+  padding: 15px;
+  font-size: 1.8rem;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 50, 0, 0.2);
+  width: 90%;
+  height: 90%;
+  max-width: 95vw;
+  position: relative;
+  font-family: inherit;
+}
+
+
+#speciesDropdown,
+#ageDropdown,
+#vigourDropdown,
+#conditionDropdown,
+#suggestSpecies,
+#suggestAge,
+#suggestCondition,
+#suggestNotes {
+  font-size: 1.8rem;
+  padding: 10px;
+}
+
+#submitFormContents label,
+#SuggestFormContents label {
+  font-size: 1.4rem;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 6px;
+}
+
+#submitFormContents button[type="submit"],
+#suggestFormContents button[type="submit"] {
+  font-size: 1.8rem;
+  padding: 12px 18px;
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100% !important;
+}
+
+#submitFormContents button[type="submit"]:hover {
+  background-color: #1b5e20;
+}
+
+#suggestOverlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(240, 248, 255, 0.9);
+  /* soft white/blue tone */
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+#suggestFormContents {
+  background-color: #ffffff;
+  padding: 15px;
+  font-size: 1.8rem;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 50, 0, 0.2);
+  width: 90%;
+  height: 90%;
+  max-width: 95pw;
+  position: relative;
+  font-family: inherit;
+}
+
+#suggestUpdateForm select,
+#suggestUpdateForm input,
+#suggestUpdateForm textarea,
+#suggestUpdateForm button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  font-size: 1.8rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* Submit button */
+#suggestUpdateForm button[type="submit"] {
+  background-color: #2e7d32;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+#suggestUpdateForm button[type="submit"]:hover {
+  background-color: #1b5e20;
+}
+
+/* Labels */
+#suggestUpdateForm label {
+  display: block;
+  margin: 6px 0 2px 0;
+  font-weight: bold;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+#syncLocationBtn {
+  font-size: 1.8rem !important;
+  padding: 16px;
+  margin-bottom: 16px;
+  width: 100%;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  font-weight: bold;
+}
+
+
+#syncLocationBtn:hover {
+  background-color: #388e3c;
+}
+
+/* Close button */
+.overlay-close-btn {
+  position: absolute;
+  padding-right: 25px;
+  top: -15px;
+  right: -5px;
+  background: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+
+/* Form inputs */
+#treeSubmitForm select,
+#treeSubmitForm input,
+#treeSubmitForm textarea,
+#treeSubmitForm button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* Submit button */
+#treeSubmitForm button {
+  background-color: #2e7d32;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+#treeSubmitForm button:hover {
+  background-color: #1b5e20;
+}
+
+#treeSubmitForm label {
+  display: block;
+  margin: 6px 0 2px 0;
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+}
+
+
+/**** See-through mode for overlay ****/
+.overlay.transparent {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  border: 1px solid rgba(200, 200, 200, 0.3);
+}
+
+/**** Toggle button styling (form visibility) ****/
+#formToggleIcon {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1100;
+  background: white;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+#formToggleIcon img {
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
+  transition: opacity 0.2s ease;
+}
+
+#formToggleIcon:hover {
+  background-color: #e8f5e9;
+  border-color: #81c784;
+}
+
+/**** Flash/error message animations ****/
+#flashMessage,
+#errorMessage {
+  font-size: 1.8rem;
+  padding: 12px 16px;
+  margin: 10px 0;
+  text-align: center;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+#flashMessage {
+  color: black;
+  /* Dark green text */
+}
+
+#errorMessage {
+  color: #7c2525;
+  /* Dark red text */
+}
+
+/**** Class used to fade out messages before hiding them ****/
+.fade-out {
+  opacity: 0.5;
+}
+
+/**** Styiling for tree sidebar panel ****/
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -80%;
+  width: 50%;
+  height: 100%;
+  border: #1b5e20 2.5px solid;
+  background: #fff;
+  overflow-y: auto;
+  transition: right 0.3s ease-in-out;
+  z-index: 999;
+}
+
+.sidebar.open {
+  right: 0;
+  /* slides it in */
+}
+
+.sidebar-toggle {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1100;
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  font-size: 1.2rem;
+  border-radius: 4px;
+}
+
+.sidebar-toggle i {
+  pointer-events: none;
+}
+
+
+.sidebar-btn:hover {
+  background-color: #1b5e20;
+}
+
+/* General button styling */
+.sidebar-btn,
+button,
+input[type="submit"],
+input[type="file"] {
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: inherit;
+  width: 15%;
+  height: 75px;
+  padding-left: 30px;
+  margin-bottom: 10px;
+  display: block;
+  text-align: center;
+  border-radius: 8px;
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.sidebar-btn-control,
+.sidebar-btn-date,
+.report-button {
+  display: inline-block;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: inherit;
+  width: 50%;
+  height: 50px;
+  line-height: 50px;
+  /* vertically center text like a button */
+  margin-left: 125px;
+  margin-top: 8px;
+  border-radius: 8px;
+  background-color: #2e7d32;
+  color: white;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+
+}
+
+.sidebar-logout,
+.sidebar-admin,
+.sidebar-account {
+  display: inline-block;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: inherit;
+  width: 50%;
+  height: 50px;
+  line-height: 50px;
+  /* vertically center text like a button */
+  margin-left: 135px;
+  margin-top: 8px;
+  border-radius: 8px;
+  background-color: #2e7d32;
+  color: white;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar-logout:hover {
+  background-color: #769478;
+}
+
+.account-submissions,
+.account-inbox,
+.account-reset {
+  display: inline-block;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+  font-family: inherit;
+  width: 50%;
+  height: 50px;
+  line-height: 50px;
+  /* vertically center text like a button */
+  margin-left: 25%;
+  margin-top: 8px;
+  border-radius: 8px;
+  background-color: #2e7d32;
+  color: white;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Select dropdowns */
+.sidebar-select,
+select {
+  font-size: 1.1rem;
+  padding: 10px;
+  width: 100%;
+}
+
+/* Input fields */
+input,
+textarea {
+  font-size: 1rem;
+  padding: 10px;
+  width: 100%;
+}
+
+.sidebar p,
+.sidebar h2,
+.sidebar h3,
+.sidebar label,
+.sidebar select {
+  font-size: 2rem;
+  padding-left: 20px;
+  padding: 20px;
+}
+
+.sidebar select,
+#speciesDropdown,
+#ageDropdown,
+#vigourDropdown,
+#conditionDropdown {
+  font-size: 1.1rem;
+  padding: 10px;
+}
+
+
+#clearFilterBtn,
+#openSubmitForm,
+#openLoginForm {
+  width: 50%;
+  height: 50px;
+  margin-top: 8px;
+  margin-left: 135px;
+  margin-right: 0px;
+}
+
+#applyFilterBtn:hover,
+#clearFilterBtn:hover,
+#openSubmitForm:hover,
+#openLoginForm:hover {
+  background-color: #769478;
+}
+
+.overlay {
+  height: 50%;
+}
+
+#authOverlay input[type="email"],
+#authOverlay input[type="password"],
+#authOverlay input[type="text"] {
+  font-size: 1.8rem;
+  padding: 10px;
+  margin-bottom: 12px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+#authOverlay button[type="submit"] {
+  font-size: 1.8rem;
+  padding: 14px 20px;
+  width: 100%;
+  border-radius: 8px;
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#authOverlay button[type="submit"]:hover {
+  background-color: #1b5e20;
+}
+
+/* Make the Leaflet popup text larger and more readable */
+.leaflet-popup-content-wrapper {
+  max-width: 320px;
+  max-height: 400px;
+  padding: 20px 18px;
+  overflow-y: auto;
+  border-radius: 12px;
+}
+
+.leaflet-popup-content {
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 1.6rem;
+  /* Slightly larger text */
+  font-weight: 500;
+  line-height: 1.6;
+  padding: 10px 0 0 0;
+  /* Remove bottom crowding */
+}
+
+.leaflet-popup-content .view-details-btn, .suggest-update-btn {
+  font-size: 1.6rem;
+  padding: 10px 16px;
+  margin-top: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'DM Sans', sans-serif;
+}
+.compare-update-btn {
+  font-size: 1.6rem;
+  padding: 10px 16px;
+  margin-top: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'DM Sans', sans-serif;
+  background-color: #679269;
+}
+
+/* Optional: adjust popup tip (arrow) size */
+.leaflet-popup-tip {
+  width: 20px;
+  height: 10px;
+}
+
+@media (max-width: 768px) {
+  .leaflet-popup-content-wrapper {
+    max-width: 90vw;
+    max-height: 60vh;
+    padding: 20px;
+  }
+
+  .leaflet-popup-content {
+    font-size: 1.8rem;
+    line-height: 1.8;
+  }
+}
+
+
+#treeSubmitForm input,
+#treeSubmitForm textarea,
+#treeSubmitForm select {
+  font-size: 1.8rem !important;
+  padding: 16px !important;
+  line-height: 1.6 !important;
+}
+
+#treeSubmitForm label {
+  font-size: 1.8rem !important;
+  font-weight: bold;
+  margin-bottom: 8px;
+  display: block;
+}
+
+#submitFormContents input[type="text"],
+#submitFormContents textarea,
+#suggestFormContents input[type="text"],
+#suggestFormContents textarea {
+  width: 100% !important;
+  box-sizing: border-box;
+  padding: 16px !important;
+  font-size: 1.8rem !important;
+  margin-bottom: 16px;
+}
+
+#submitFormContents input[type="file"],
+#suggestFormContents input[type="file"] {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+#latitude,
+#longitude {
+  width: 100% !important;
+  padding: 16px !important;
+  font-size: 1.8rem !important;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.hidden {
+  display: none;
+}
+
+#treeInfoPanel {
+  position: relative;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  background: #fff;
+  max-width: 300px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #aaa;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.tree-card-panel {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: white;
+  border: 2px solid #ccc;
+  padding: 1rem;
+  max-width: 300px;
+  z-index: 1000;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+  margin-top: 1rem;
+  background: #d33;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.details-overlay {
+  position: fixed; /* Cover the entire viewport */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 250, 250, 0); /* Darker backdrop for focus */
+  z-index: 2000; /* Ensure it's on top of the map and sidebar */
+  
+  /* Use Flexbox to perfectly center the content box */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Default "hidden" state */
+  opacity: 0;
+  pointer-events: none; /* Make it non-interactive when hidden */
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* The ".show" class makes the overlay visible */
+.details-overlay.show {
+  opacity: 1;
+  pointer-events: auto; /* Make it interactive when visible */
+}
+
+/* The white content box inside the overlay */
+.details-overlay .details-content {
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 800px; /* Set a max width for large screens */
+  max-height: 90vh; /* Prevent it from being taller than the screen */
+  overflow-y: auto; /* Allow the content box to scroll if needed */
+  position: relative; /* Needed for positioning the close button */
+}
+
+/* The close "X" button */
+.details-overlay .details-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+.details-overlay .details-close-btn:hover {
+  color: #333;
+}
+
+.view-details-btn {
+  display: block;
+  font-size: 1.8rem;
+  width: 100%;
+  max-width: 200px;
+  margin: 10px auto 0;
+  padding: 10px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.view-details-btn:hover {
+  background-color: #45a049;
+}
+
+.edit-tree-btn {
+  font-size: 1.6rem;
+  padding-right: 20px;
+  font-display: fixed;
+  font-family: inherit;
+}
+
+/* For the admin table layout */
+.admin-table-container {
+  width: 90%;
+  margin: 0 auto;
+  margin-top: 2rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  background-color: #fff;
+  border: 1px solid #ccc;
+}
+
+th,
+td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #eee;
+}
+
+td button,
+td a {
+  margin-right: 8px;
+}
+
+.admin-action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* Standardize buttons and links inside action cells */
+/* Base admin button style */
+
+.admin-button,
+.admin-button:link,
+.admin-button:visited {
+  background-color: #2e5b2e;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  min-width: 10px;
+  min-height: 50px;
+  max-height: 40px;
+  max-width: 100px;
+  text-align: center;
+  display: flex;
+  text-decoration: none;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.admin-btn {
+  min-width: 60px;
+  max-height: 40px;
+  font-size: 0.8rem;
+}
+
+.admin-btn-primary {
+  font-size: 0.9rem;
+  max-height: 50px;
+  min-width: 60px;
+}
+
+#generate-report-btn {
+  background-color: #2e5b2e;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  min-width: 100px;
+  min-height: 40px;
+  max-height: 40px;
+  max-width: 100px;
+  text-align: center;
+  display: flex;
+  text-decoration: none;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.admin-action-buttons form,
+.admin-action-buttons a,
+.admin-action-buttons button {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Hover effect */
+.admin-button:hover {
+  background-color: #3b7c3b;
+}
+
+/* Disabled styling */
+.admin-button.disabled,
+.admin-button[disabled] {
+  background-color: #a46b3d;
+  cursor: not-allowed;
+  pointer-events: none;
+  color: white;
+}
+
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 2rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.pagination-btn {
+  background-color: #295c2f;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.pagination-btn:hover {
+  background-color: #3a7d40;
+}
+
+.pagination-btn.disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.pagination-current {
+  font-weight: 500;
+}
+
+.pagination-jump-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.jump-input {
+  width: 50px;
+  padding: 4px;
+  font-size: 1rem;
+  text-align: center;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.tree-details-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 2rem;
+  margin: 2rem auto;
+  width: 90%;
+  max-width: 800px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.tree-details-card p {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.tree-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+}
+
+.details-map-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.details-card {
+  flex: 1;
+  min-width: 300px;
+}
+
+.map-card {
+  width: 600px;
+  height: 600px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.08);
+  z-index: 5;
+  background-color: #f0f0f0;
+}
+
+.details-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  max-width: 1200px;
+  background-color: #f7f7f7;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.details-card {
+  flex: 1;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.08);
+}
+
+.details-card p {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+
+.admin-page-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #f7f7f7;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.admin-table-container {
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.admin-banner,
+.account-banner,
+.generic-banner {
+  background-color: #295c2f;
+  padding: 1rem 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-family: 'DM Sans', sans-serif;
+  color: white;
+}
+
+.admin-banner-inner,
+.account-banner-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0 1rem;
+}
+
+.admin-banner-title,
+.account-banner-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.admin-banner-links,
+.account-banner-links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-banner-link,
+.account-banner-links {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  background-color: #3a7d40;
+  padding: 10px 16px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.admin-banner-link:hover,
+.account-banner-link:hover {
+  background-color: #4caf50;
+}
+
+.filter-bar {
+  margin-bottom: 1.5rem;
+  background-color: #fdf0e3;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filter-form label {
+  font-weight: bold;
+}
+
+.filter-form select,
+.filter-form input {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.filter-form button,
+.clear-button {
+  background-color: #2f9b2f;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  min-width: 80px;
+  min-height: 40px;
+  max-height: 40px;
+  max-width: 40px;
+  text-align: center;
+  display: flex;
+  text-decoration: none;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.filter-form button:hover,
+.clear-button:hover {
+  background-color: #4caf50;
+}
+
+.admin-action-buttons select[name="is_verified"] {
+  width: 120px;
+  /* or 100px, adjust as needed */
+  padding: 6px 8px;
+  font-size: 0.9rem;
+  margin-right: 5px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.admin-action-buttons form {
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.placeholder-box {
+  background-color: #f9f9f9;
+  border: 2px dashed #ccc;
+  padding: 30px;
+  margin-top: 20px;
+  text-align: center;
+  font-style: italic;
+}
+
+.csv-upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.file-input {
+  display: none !important;
+  /* Hides the native file input */
+}
+
+.file-upload-label {
+  background-color: #2e8b57;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.file-upload-label:hover {
+  background-color: #256d45;
+}
+
+.file-name {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.alert-notification {
+  background-color: #e7ffe5;
+  border: 1px solid #92e987bd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  font-size: 2rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.alert-notification h3 {
+  text-align: center;
+  list-style-type: none;
+  padding-right: 50px;
+}
+
+.alert-notification ul {
+  padding-right: -200px;
+  list-style-type: none;
+}
+
+.alert-notification li a {
+  font-weight: bold;
+  color: #a2cc98;
+  text-decoration: none;
+  font-size: 2rem;
+}
+
+.zoom-to-tree-btn i {
+  color: #c01212;
+  font-size: 3rem;
+  padding-left: 150px;
+}
+
+.zoom-to-tree-btn:hover i {
+  color: #c01818;
+}
+
+.image-carousel-container {
+  position: relative;
+  overflow: hidden;
+  max-height: 20%;
+  margin: 1rem 0;
+}
+
+.image-carousel {
+  display: flex;
+  overflow-x: auto;
+  max-height: 800px;
+  max-width: 100%;
+  scroll-behavior: smooth;
+}
+
+/* .carousel-image {
+  max-width: 60%;
+  height: 30%;
+  margin-right: 10px;
+  border-radius: 6px;
+} */
+
+.carousel-nav {
+  position: absolute;
+  top: 40%;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.carousel-nav.left {
+  left: 0;
+}
+
+.carousel-nav.right {
+  right: 0;
+}
+
+.carousel-item,
+.carousel-image {
+  position: relative;
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+  line-height: 0;
+  overflow: hidden;
+}
+
+/* 3. Style and position the EXIF caption */
+.exif-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 8px 12px;
+  font-size: 1.2rem;
+  line-height: 1.4;
+  /* Hides the bottom corners of the caption behind the image's rounded corners */
+}
+
+/* Style the smaller text inside the caption (e.g., the date) */
+.exif-caption small {
+  font-size: 1.6rem;
+  opacity: 0.8;
+}
+
+.flash-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4caf50;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  z-index: 9999;
+  opacity: 0.95;
+}
+
+.flash-message.error {
+  background: #f44336;
+}
+
+.image-modal {
+  display: none;
+  /* Hidden by default */
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  /* semi-transparent backdrop */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-modal-content {
+  background-color: #fff;
+  padding: 20px;
+  max-width: 90%;
+  max-height: 80%;
+  overflow-y: auto;
+  border-radius: 10px;
+  position: relative;
+}
+
+.image-modal-content img {
+  max-width: 100%;
+  margin-bottom: 10px;
+}
+
+#closeUpdateImageModalBtn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.account-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.account-header h2 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.map-link {
+  text-decoration: none;
+  color: #80e995;
+  font-weight: bold;
+}
+
+.account-section {
+  margin-bottom: 2rem;
+}
+
+.notification-list {
+  list-style: none;
+  padding: 0;
+}
+
+.notification {
+  border-left: 4px solid #ccc;
+  background: #f4f4f4;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.notification.unread {
+  border-left-color: #5aa469;
+  background: #e8f5e9;
+}
+
+.notification small {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.empty-state {
+  font-style: italic;
+  color: #999;
+}
+
+.placeholder-text {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+/* Container to keep buttons aligned and spaced */
+.notification-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* Style for the Mark as Read button */
+.notification-actions .mark-read-btn {
+  background-color: #e0f7fa;
+  border: 1px solid #26c6da;
+  color: #007c91;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  height: 40px;
+  font-size: 0.8rem;
+}
+
+.notification-actions .mark-read-btn:hover {
+  background-color: #b2ebf2;
+}
+
+/* Style for the Delete button */
+.notification-actions .delete-btn {
+  background-color: #ffebee;
+  border: 1px solid #e57373;
+  color: #c62828;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  height: 40px;
+  font-size: 0.8rem;
+}
+
+.notification-actions .delete-btn:hover {
+  background-color: #ffcdd2;
+}
+
+
+/* Ensure tables are scrollable on small screens */
+.submissions-table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.submissions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.submissions-table th,
+.submissions-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+  white-space: nowrap;
+}
+
+/* Badge styles */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+  color: #856404;
+  background-color: #fff3cd;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+
+  .submissions-table th,
+  .submissions-table td {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .account-header h2,
+  .account-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .submissions-table-container {
+    padding: 0 0.5rem;
+  }
+}
+
+.submission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.submission-card {
+  background-color: #2f541a;
+  color: white;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 0.95rem;
+}
+
+.submission-card p {
+  margin: 0.3rem 0;
+  line-height: 1.4;
+}
+
+.back-link {
+  font-size: 0.9rem;
+  color: black;
+  float: right;
+  text-decoration: none;
+  margin-top: 0.5rem;
+}
+
+.detail-back-link {
+  font-size: 2rem;
+  color: #3b0a3d;
+  text-decoration: underline;
+  margin-top: 1rem;
+}
+
+.forgot-password-link {
+  font-size: 2rem;
+  color: #333;
+  text-decoration: underline;
+}
+
+.forgot-password-container {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #f4f4f4;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.forgot-password-container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.forgot-password-container p {
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.forgot-password-container input[type="email"] {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.forgot-password-container button {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  background-color: #265b1f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.forgot-password-container button:hover {
+  background-color: #1d4718;
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 1rem;
+  color: #3b0a3d;
+  text-decoration: underline;
+}
+
+.auth-form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+}
+
+.auth-form {
+  background: var(--light-brown);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 100%;
+}
+
+.auth-form h2 {
+  margin-bottom: 1rem;
+}
+
+.auth-form p {
+  margin-bottom: 1.5rem;
+}
+
+.auth-form input {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+
+.green-button {
+  background-color: #225c1a;
+  color: white;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  width: 100%;
+  cursor: pointer;
+}
+
+.green-button:hover {
+  background-color: #1a4714;
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 1.5rem;
+  color: #35003d;
+  font-weight: bold;
+}
+
+.account-password-reset-form input[type="email"] {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-right: 0.5rem;
+  width: 70%;
+}
+
+.account-password-reset-form .green-btn {
+  padding: 0.5rem 1rem;
+  background-color: #265c1e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-reset-password {
+  padding: 10px 15px;
+  background-color: #222;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.btn-reset-password:hover {
+  background-color: #444;
+}
+
+.detail-wrapper {
+  max-width: 900px;
+  margin: 1rem auto;
+  padding: 1rem;
+}
+
+.detail-header h2 {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.tree-details {
+  font-size: 1.8rem;
+  line-height: 2;
+  padding: 1rem 3rem;
+  background-color: #2f541a;
+  color: #fff;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tree-details li {
+  margin-bottom: 0.8rem;
+}
+
+.btn-view-images {
+  background-color: #2f541a;
+  color: #ffffff;
+  padding: 0.75rem 1.25rem;
+  font-size: 2rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  display: inline-block;
+  min-width: 200px;
+  min-height: 100px;
+}
+
+#detailTreeMap {
+  height: 400px;
+  width: 100%;
+  z-index: 5;
+  background-color: #f0f0f0;
+}
+
+.detail-map {
+  margin-top: 2rem;
+}
+
+@media (max-width: 600px) {
+  #detailTreeMap {
+    height: 250px;
+  }
+}
+
+.user-tree-banner-wrapper .account-banner {
+  padding: 3.8rem 3.8rem;
+  font-size: 3rem;
+}
+
+.user-tree-banner-wrapper .account-banner h1 {
+  font-size: 3rem;
+}
+
+.user-tree-banner-wrapper .account-banner a {
+  font-size: 2.3rem;
+}
+
+.user-tree-banner-wrapper .account-banner-title {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.generic-tree-banner-wrapper .generic-banner {
+  padding: 3.8rem 3.8rem;
+  font-size: 3rem;
+}
+
+.generic-tree-banner-wrapper .generic-banner h1 {
+  font-size: 10rem;
+}
+
+.generic-tree-banner-wrapper .generic-banner a {
+  font-size: 2rem;
+}
+
+.generic-tree-banner-wrapper .generic-banner-title {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.btn-view-tree,
+.btn-view-history {
+  background-color: #2f541a;
+  color: #c5e0c8;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-block;
+}
+
+
+
+.account-wrapper {
+  padding: 1rem;
+}
+
+/* Mobile-first base styles */
+.tree-history-container .tree-history-table th,
+.tree-history-container .tree-history-table td {
+  font-size: 1.8rem;
+  /* Slightly larger font for mobile */
+  padding: 10px;
+}
+
+@media (min-width: 768px) {
+
+  .tree-history-container .tree-history-table th,
+  .tree-history-container .tree-history-table td {
+    font-size: 1.6rem;
+    padding: 8px 12px;
+  }
+
+  .tree-history-container .tree-history-table {
+    width: 90%;
+    margin: 0 auto 2rem auto;
+  }
+
+  .tree-history-container .back-link {
+    font-size: 1.8rem;
+    padding-right: 0;
+  }
+
+  .tree-history-container .history-header {
+    font-size: 2.4rem;
+    padding: 0 20px;
+  }
+}
+
+
+.tree-history-container {
+  padding: 1rem;
+}
+
+.tree-history-container .tree-history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+
+.tree-history-container .back-link {
+  font-size: 1.8rem;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 600px) {
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .tree-history-table {
+    min-width: 600px;
+  }
+}
+
+.map-legend {
+  position: absolute;
+  top: 15px;
+  left: 50px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  font-size: 1.65rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 999;
+  transition: width 0.3s ease;
+}
+
+.map-legend button#legend-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.map-legend button img {
+  width: 60px;
+  height: 40px;
+}
+
+.legend-content {
+  padding: 8px 14px;
+  display: block;
+}
+
+.map-legend:not(.open) .legend-content {
+  display: none;
+}
+
+.compare-panel {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  width: 90%;
+  max-width: 800px;
+  min-height: 800px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  padding: 1.5rem;
+  display: none;
+  flex-direction: column;
+}
+
+.compare-panel.show {
+  display: flex;
+}
+
+.compare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compare-content {
+  margin-top: 1rem;
+}
+
+/* Use grid for fixed column layout */
+.compare-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 40px 1fr;
+  align-items: center;
+  width: 100%;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  gap: 16px;
+}
+
+.compare-label {
+  font-weight: bold;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.compare-current {
+  padding: 0 8px;
+  word-break: break-word;
+  text-align: center;
+}
+
+.compare-arrow {
+  width: 20px;
+  text-align: center;
+  color: #555;
+}
+
+.compare-suggested {
+  padding: 0 8px;
+  word-break: break-word;
+  text-align: center;
+}
+
+
+.comparison-table th,
+.comparison-table td {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 1.3rem;
+}
+
+.compare-btn {
+  margin-top: 10px;
+  background-color: #004466;
+  color: white;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+
+
+.vote-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.vote-btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: white;
+  min-width: 200px;
+}
+
+.vote-btn.upvote {
+  background-color: #206a3b;
+}
+
+.vote-btn.downvote {
+  background-color: #8b1e1e;
+}
+
+.vote-btn.voted {
+  background-color: #004466;
+  color: white;
+  font-weight: bold;
+}
+
+.upvote-count {
+  background-color: #e6f9f0;
+  color: #107c41;
+  font-weight: bold;
+  text-align: center;
+}
+
+.downvote-count {
+  background-color: #fbeaea;
+  color: #b92c28;
+  font-weight: bold;
+  text-align: center;
+}
+
+.truncate-notes {
+  max-width: 180px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin: 40px 0;
+}
+
+.chart-container canvas {
+  max-width: 100%;
+  height: 400px;
+}
+
+#conditionPieChart {
+  min-width: 800px;
+  min-height: 800px;
+  margin: 0 auto;
+  /* center it */
+}
+
+#heatmap-controls {
+  margin-top: 15px;
+  font-size: 2rem;
+}
+
+#heatmap-controls label {
+  margin-right: 8px;
+}
+
+#heatmapType {
+  font-size: 1.8rem;
+}
+
+.leaflet-heatmap-layer {
+  /* This rule now ONLY applies to the heatmap on the main dashboard */
+  z-index: 500 !important;
+  pointer-events: none;
+  /* Make the heatmap layer itself click-through */
+  opacity: 0.7;
+  /* A more reasonable default opacity */
+}
+
+
+
+/* Target all <select> elements inside the reporting controls div */
+#reporting-controls select {
+  font-size: 1.8rem;
+  padding: 12px 10px;
+  margin-bottom: 1rem;
+  min-height: 48px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Also increase the font size of the labels for consistency */
+#reporting-controls label {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-top: 1rem;
+  /* Add some space above each label */
+}
+
+/* Make the "Apply Filters" button full-width on mobile */
+#reporting-controls .sidebar-btn {
+  width: 100%;
+  font-size: 1.8rem;
+  padding: 14px;
+  height: auto;
+  /* Allow height to adjust to padding */
+}
+
+.date-filter-group input[type="date"] {
+  font-size: 1.6rem;
+  padding: 12px;
+  width: 100%;
+  /* Makes the inputs stack vertically */
+  box-sizing: border-box;
+  /* Ensures padding doesn't break the layout */
+  margin-bottom: 1rem;
+  min-height: 48px;
+}
+
+/* Targets the labels associated with the date inputs */
+.date-filter-group label {
+  font-size: 1.5rem;
+  display: block;
+  /* Ensures the label is on its own line */
+  margin-top: 1rem;
+}
+
+
+.collapsible-header {
+  display: flex;
+  justify-content: space-between;
+  /* Pushes h3 left and button right */
+  align-items: center;
+  /* Vertically aligns them */
+  cursor: pointer;
+  /* Makes the whole header feel interactive */
+  padding-right: 15px;
+  /* Prevents button from touching the edge */
+}
+
+/* Styles for the new expand/collapse button */
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  /* Makes the arrow larger */
+  color: #333;
+  /* A standard dark grey for text */
+  cursor: pointer;
+  padding: 5px;
+}
+
+/* This handles the smooth rotation of the arrow icon */
+#toggle-reporting-icon {
+  display: inline-block;
+  /* Required for transform to work */
+  transition: transform 0.3s ease;
+}
+
+/* When the button has the 'collapsed' class, flip the arrow */
+.sidebar-toggle-btn.collapsed #toggle-reporting-icon {
+  transform: rotate(-90deg);
+  /* Points the arrow to the right */
+}
+
+/* This is the class that actually hides and shows the content */
+#reporting-controls.collapsed {
+  display: none;
+}
+
+#interactive-list-container {
+  margin-top: 1rem;
+  border-top: 1px solid #ddd;
+  padding-top: 1rem;
+
+  /* This is the key to making the list scrollable */
+  max-height: 40vh;
+  /* 40% of the viewport height */
+  overflow-y: auto;
+  /* Show a scrollbar only when needed */
+}
+
+#interactive-list-container h4 {
+  margin-top: 0;
+  padding: 0 15px;
+  /* Align with list item padding */
+}
+
+.tree-list-item {
+  display: flex;
+  justify-content: space-between; /* Pushes items to opposite ends */
+  align-items: center; /* Vertically centers them */
+  
+  padding: 12px 15px;
+  font-size: 1.6rem;
+  line-height: 1.4;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.distance-display {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #333;
+  background-color: #f0f0f0; /* Light grey background */
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap; /* Prevents the text from wrapping */
+}
+
+/* Targets the smaller status/condition text */
+.tree-list-item small {
+  font-size: 1.3rem;
+  /* e.g., 13px */
+  color: #555;
+}
+
+/* On hover, for the active state, ensure the text color is dark for contrast */
+.tree-list-item.active small {
+  color: #333;
+}
+
+/* Style for when the user hovers over a list item */
+.tree-list-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* Style for the currently selected/active list item */
+.tree-list-item.active {
+  background-color: #e8f5e9;
+  /* A light green to indicate selection */
+  color: #1b5e20;
+  font-weight: bold;
+}
+
+
+/* --- Styles for Chart Modal --- */
+.chart-modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+/* The selector is now more specific: #chart-modal .chart-modal-content */
+#chart-modal .chart-modal-content {
+  background-color: #fefefe;
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+  display: flex;
+
+  /* These rules will now be applied correctly */
+  width: 90vw;
+  height: 85vh;
+  max-width: 1000px;
+  max-height: 800px;
+}
+
+/* The container for the actual chart inside the modal */
+#modal-chart-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* The close button style remains the same */
+.chart-modal .close-btn {
+  position: fixed;
+  top: 635px;
+  right: 40px;
+  color: black;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 100;
+}
+
+
+.status-badge {
+  padding: 3px 8px;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.8em;
+  text-transform: capitalize;
+}
+
+.status-badge.pending {
+  background-color: #f0ad4e;
+}
+
+.status-badge.approved {
+  background-color: #5cb85c;
+}
+
+.status-badge.rejected {
+  background-color: #d9534f;
+}
+
+.compare-modal {
+  display: none;
+  /* Hidden by default */
+  position: fixed;
+  /* Stay in place even when scrolling */
+  z-index: 1000;
+  /* Sit on top of everything else */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  /* Enable scroll if needed */
+  background-color: rgba(0, 0, 0, 0.6);
+  /* Black with opacity */
+}
+
+/* Modal Content Box */
+.compare-modal-content {
+  background-color: #fefefe;
+  margin: 10% auto;
+  /* 10% from the top and centered horizontally */
+  padding: 25px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 700px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* The Close Button (X) */
+.compare-modal-close {
+  color: #aaa;
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.compare-modal-close:hover,
+.compare-modal-close:focus {
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Grid layout for the comparison view */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.compare-grid h3 {
+  grid-column: 1 / -1;
+  /* Make header span both columns */
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.compare-grid .field-label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.current-data {
+  background-color: #fff0f0;
+  /* Light red */
+  padding: 10px;
+  border-radius: 5px;
+  border-left: 4px solid #d9534f;
+  /* Red accent */
+}
+
+.suggested-data {
+  background-color: #f0fff0;
+  /* Light green */
+  padding: 10px;
+  border-radius: 5px;
+  border-left: 4px solid #5cb85c;
+  /* Green accent */
+}
+
+/* --- Other helpful styles --- */
+
+.clickable-note {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.8em;
+  font-weight: 500;
+  text-transform: capitalize;
+  display: inline-block;
+  text-align: center;
+  min-width: 60px;
+}
+
+.status-badge.pending {
+  background-color: #f0ad4e;
+}
+
+.status-badge.approved {
+  background-color: #5cb85c;
+}
+
+.status-badge.rejected {
+  background-color: #d9534f;
+}
+
+.configurations-bar .config-controls {
+  display: flex;
+  justify-content: space-between; /* Puts space between load and save sections */
+  align-items: flex-end;          /* Aligns them along their bottom edge */
+  flex-wrap: wrap;                /* Allows them to stack on small screens */
+  gap: 20px;
+  border-top: 1px solid #ddd;
+  padding-top: 20px;
+  margin-top: 10px;
+}
+
+/* Individual sections for loading and saving */
+.config-load-section,
+.config-save-section {
+  flex: 1; /* Each section tries to take up equal space */
+  min-width: 300px; /* Prevents them from getting too squished */
+}
+
+/* General styling for forms on this page */
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Space between form groups */
+  align-items: flex-end; /* Align items to the bottom */
+}
+
+.filter-form .form-group {
+  display: flex;
+  flex-direction: column; /* Stack label on top of input */
+  flex: 1; /* Allow groups to grow */
+  min-width: 180px; /* Give them a minimum width */
+}
+
+.filter-form .form-group label {
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+/* Ensure form actions have consistent styling */
+.form-actions {
+  display: flex;
+  gap: 10px; /* Space between buttons like Load/Delete */
+  align-items: center;
+}
+
+.form-actions.full-width {
+    flex-basis: 100%; /* Makes the generate/download buttons take a full row */
+    margin-top: 10px;
+}
+
+/* Make sure buttons and inputs have a consistent look */
+#delete-loadout-btn {
+  background-color: #d9534f;
+  color: white;
+  border-color: #d43f3a;
+  font-size: 1rem;
+  max-height: 50px;
+  display: inline-flex; 
+  justify-content: center;
+  align-items: center;
+  gap: 8px; 
+  padding: 8px 16px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#save-loadout-btn {
+  background-color: #5cb85c;
+  color: white;
+  border-color: #4cae4c;
+  font-size: 1rem;
+  max-height: 50px;
+  min-width: 150px;
+   display: inline-flex; 
+  justify-content: center;
+  align-items: center;
+  gap: 8px; 
+  padding: 8px 16px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#load-loadout-btn{
+  background-color: #2d5c2d;
+  color: white;
+  border-color: #4cae4c;
+  font-size: 1rem;
+  max-height: 50px;
+   display: inline-flex; 
+  justify-content: center;
+  align-items: center;
+  gap: 8px; 
+  padding: 8px 16px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+.admin-button-danger:hover {
+  background-color: #c9302c;
+  border-color: #ac2925;
+}
+
+.admin-button-primary {
+  background-color: #337ab7;
+  color: white;
+  border-color: #2e6da4;
+}
+.admin-button-primary:hover {
+  background-color: #286090;
+  border-color: #204d74;
+}
+
+/* Disabled link styling */
+.admin-button.disabled {
+  pointer-events: none;
+  background-color: #ccc;
+  border-color: #bbb;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.edit-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.edit-form .form-group {
+  flex: 1;
+  min-width: 250px; /* Ensures fields don't get too squished */
+  display: flex;
+  flex-direction: column;
+}
+.edit-form .form-group.full-width {
+  flex-basis: 0.5; /* Makes notes field take the full width */
+}
+.edit-form label {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.edit-form input,
+.edit-form select,
+.edit-form textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box; /* Important for consistent sizing */
+}
+

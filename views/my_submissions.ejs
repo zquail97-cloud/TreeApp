@@ -1,0 +1,49 @@
+<!-- EJS template for displaying a user's tree submissions with options to view details and history. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Submissions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/account_banner') %> 
+
+  <div class="account-wrapper">
+    <header class="account-header">
+      <h2>My Submissions</h2>
+      <a href="/notifications" class="back-link">← Back to Account</a>
+    </header>
+
+    <% if (trees.length === 0) { %>
+      <!-- Displays a message if the user has no submissions -->
+      <p class="empty-state">You haven’t submitted any trees yet.</p>
+    <% } else { %>
+      <section class="submission-list">
+        <% trees.forEach(tree => { %>
+          <!-- Card for each tree submission -->
+          <div class="submission-card">
+            <p><strong>Tree ID:</strong> <%= tree.tree_id %></p>
+            <p><strong>Species:</strong> <%= tree.species_name || 'Unknown' %></p>
+            <p><strong>Notes:</strong> <%= tree.notes ? tree.notes.substring(0, 60) + '…' : '—' %></p>
+            <p><strong>Status:</strong> 
+              <!-- Displays verification status of the tree -->
+              <%= tree.is_verified ? '✅ Verified' : '⏳ Pending' %>
+            </p>
+            <p><strong>Submitted:</strong> <%= new Date(tree.created_at).toLocaleDateString() %></p>
+            <td>
+              <!-- Links to view tree details and history -->
+                <a href="/my-submissions/<%= tree.tree_id %>" class="btn-view-tree">View Tree || </a>
+              </td>
+              <a href="/tree-history/<%= tree.tree_id %>" class="btn-view-history">View History</a>
+
+          </div>
+        <% }) %>
+      </section>
+    <% } %>
+  </div>
+
+</body>
+</html>
+

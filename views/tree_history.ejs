@@ -1,0 +1,73 @@
+<!-- EJS page to dynamically render and display historical updates and changes to a selected tree record-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tree Update History</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="generic-tree-banner-wrapper">
+    <%- include('partials/generic_banner') %>
+  </div>
+
+  <!-- Main content area for displaying the tree update history -->
+  <div class="tree-history-container">
+    <header class="history-header">
+      <h2>Update History for Tree ID: <%= treeId %>
+      </h2>
+      <a href="javascript:history.back()" class="back-link">← Go Back</a>
+    </header>
+
+    <!-- Section to display the history of updates made to the tree -->
+    <section class="history-section">
+      <% if (history && history.length> 0) { %>
+        <div class="table-wrapper">
+          <table class="tree-history-table">
+            <thead>
+              <tr>
+                <th>Submitted By</th>
+                <th>Date</th>
+                <th>Age</th>
+                <th>Condition</th>          
+                <th>Notes</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <!-- Body of the table displaying each update -->
+            <tbody>
+              <% history.forEach(update=> { %>
+                <tr>
+                  <td><%= update.submitted_by || 'Unknown' %></td>
+
+                  <td>
+                    <%= new Date(update.submitted_at).toLocaleDateString() %>
+                  </td>
+                  <td>
+                    <%= update.age_desc || '—' %>
+                  </td>
+                  <td>
+                    <%= update.condition_level || '—' %>
+                  </td>            
+                  <td>
+                    <%= update.notes || '—' %>
+                  </td>
+                  <td>
+                    <%= update.status || 'Pending' %>
+                  </td>
+                </tr>
+                <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <!-- Display a message if no updates are available -->
+        <% } else { %>
+          <p>No update history available for this tree.</p>
+          <% } %>
+    </section>
+  </div>
+</body>
+
+</html>

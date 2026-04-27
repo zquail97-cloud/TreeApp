@@ -1,0 +1,119 @@
+<!-- EJS file to dynamically display details and map markers for trees that have been submitted by a user-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tree Details</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<!-- Banner for the user tree details page -->
+<body>
+    <div class="user-tree-banner-wrapper">
+        <%- include('partials/account_banner') %>
+      </div>
+
+      <!-- Main content area for displaying the tree details -->
+  <div class="detail-wrapper">
+    <header class="detail-header">
+      <h2>Tree Details</h2>
+      <a href="/my-submissions" class="detail-back-link">← Back to My Submissions</a>
+    </header>
+
+    <!-- Section to display the details of the selected tree -->
+    <div class="detail-content">
+      <div class="detail-card">
+        <ul class="tree-details">
+          <li><strong>Tree ID:</strong> <%= tree.tree_id %></li>
+          <li>
+            <strong>Species:</strong> <%= tree.species_name || 'Unknown' %>
+            <% if (tree.botanical_name) { %>
+              <br><small style="color: #fffbfb;"><em><%= tree.botanical_name %></em></small>
+            <% } %>
+          </li>
+          <li><strong>Age:</strong> <%= tree.age_desc || 'Not specified' %></li>
+          <li><strong>Condition:</strong> <%= tree.condition_level || 'Not specified' %></li>
+          <li><strong>Surroundings:</strong> <%= tree.surround_type || 'Not specified' %></li>
+          <li><strong>Notes:</strong> <%= tree.notes || '—' %></li>
+        </ul>
+
+        <% if (tree.images && tree.images.length > 0) { %>
+          <div class="image-carousel-container" style="margin-top: 15px;">
+              <p><strong>Images (click to enlarge):</strong></p>
+              <div class="image-carousel">
+                  <% tree.images.forEach(img => { %>
+                      <img src="<%= img.image_url %>" class="carousel-image-thumb" alt="Tree thumbnail" data-full-src="<%= img.image_url %>">
+                  <% }) %>
+              </div>
+          </div>
+        <% } %>
+
+          <!-- Render the map if latitude and longitude are available -->
+       <div class="detail-map">
+    <div id="detailTreeMap" class="map-card"></div>
+  </div>
+</div>
+
+  <!-- Image Modal -->
+  <div id="imageViewerModal" class="image-viewer-modal">
+  <span class="image-viewer-close">&times;</span>
+  <img class="image-viewer-content" id="imageViewerContent">
+</div>
+</div>
+
+
+  <!-- Leaflet & Modal Script -->
+  <% if (tree.latitude && tree.longitude) { %>
+  <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function() {
+          try {
+            const map = L.map('detailTreeMap').setView([<%= tree.latitude %>, <%= tree.longitude %>], 17);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            L.marker([<%= tree.latitude %>, <%= tree.longitude %>]).addTo(map);
+
+            console.log('User detail map initialized successfully.');
+
+          } catch (e) {
+            console.error('Failed to initialize user detail map:', e);
+          }
+        }, 0); 
+      });
+  </script>
+  <% } %>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const imageViewerModal = document.getElementById('imageViewerModal');
+        const imageViewerContent = document.getElementById('imageViewerContent');
+        const closeImageViewerBtn = document.querySelector('.image-viewer-close');
+
+        document.body.addEventListener('click', (e) => {
+            if (e.target.classList.contains('carousel-image-thumb')) {
+                imageViewerContent.src = e.target.dataset.fullSrc;
+                imageViewerModal.style.display = 'flex';
+            }
+        });
+
+        closeImageViewerBtn.addEventListener('click', () => { imageViewerModal.style.display = 'none'; });
+        window.addEventListener('click', (e) => {
+            if (e.target == imageViewerModal) {
+                imageViewerModal.style.display = 'none';
+            }
+        });
+    });
+</script>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,28 @@
+<!-- The dashboard which is rendered upon an admin accessing the admin dashboard. 
+ This is somewhat of a legacy page but serves as a portal between the map and specific admin reporting and control tools. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/admin_banner') %>
+
+  <h1 class="admin-header">Welcome, <%= user.name %></h1>
+
+  <div class="admin-section">
+    <h2>🌳 Admin Tools</h2>
+    <ul>
+      <li><a href="/admin/trees">Control Panel</a></li>
+      <li><a href="/admin/tree-updates">Submitted Updates</a></li>
+      <li><a href="/admin/csv-upload">Upload Bulk CSV Data</a></li>
+      <li><a href="/admin/reports">Generate Reports</a></li>
+      <li><a href="/">Back to Map</a></li>
+    </ul>
+  </div>
+</body>
+</html>

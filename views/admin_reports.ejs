@@ -1,0 +1,338 @@
+<!-- This web page facilitates the powerful reporting functions available to admins. Allows for parameterised reports to be selected, executed, exported as CSVs, render reports via charts
+ , save/delete 'loadouts' of paramters for future ease of use.-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reports</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include('partials/admin_banner') %>
+
+  <div class="admin-page-container">
+    <h1 class="admin-header">Reports Dashboard</h1>
+    <p>This page can be used to download a tabular report of tree data as a CSV and to visualise tree data via charts.</p>
+
+    <!-- Configurations Management Section --- -->
+    <div class="admin-section configurations-bar">
+      <h3>Report Configurations</h3>
+      <div class="config-controls">
+        
+        <!-- Left Side: Load/Delete Existing Configurations -->
+        <div class="config-load-section">
+          <div class="form-group">
+            <label for="loadout-select">Saved Configurations:</label>
+            <select id="loadout-select">
+              <option value="">-- Select a Configuration --</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" id="load-loadout-btn" class="admin-button">Load</button>
+            <button type="button" id="delete-loadout-btn" class="admin-button-danger">Delete</button>
+          </div>
+        </div>
+
+        <!-- Right Side: Save New Configuration -->
+        <div class="config-save-section">
+          <div class="form-group">
+            <label for="save-loadout-name">Save Current Filters as:</label>
+            <input type="text" id="save-loadout-name" placeholder="e.g., Unverified Ash Trees">
+          </div>
+          <div class="form-actions">
+             <button type="button" id="save-loadout-btn" class="admin-button-primary">Save Configuration</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="admin-section filter-bar">
+  <h3>Generate a Parameterized Report</h3>
+  <form id="report-filter-form" class="filter-form">
+    
+    <div class="form-group">
+      <label for="report-filter-species">Species:</label>
+      <select id="report-filter-species" name="species_id">
+        <option value="">All Species</option>
+      </select>
+    </div>
+
+    <!-- Filter by Condition -->
+    <div class="form-group">
+      <label for="report-filter-condition">Condition:</label>
+      <select id="report-filter-condition" name="condition_id">
+        <option value="">All Conditions</option>
+      </select>
+    </div>
+
+    <!-- Filter by verification -->
+     <div class="form-group">
+      <label for="report-filter-verified">Status:</label>
+      <select id="report-filter-verified" name="is_verified">
+        <option value="">All</option>
+        <option value="1">Verified</option>
+        <option value="0">Not Verified</option>
+      </select>
+    </div>
+
+    <!-- Filter by Age Group -->
+    <div class="form-group">
+      <label for="report-filter-age">Age:</label>
+      <select id="report-filter-age" name="age_id">
+        <option value="">All Ages</option>
+      </select>
+    </div>
+
+    <!-- Filter by Date Range -->
+    <div class="form-group date-filter">
+      <label for="report-filter-start-date">Submitted After:</label>
+      <input type="date" id="report-filter-start-date" name="startDate">
+      <label for="report-filter-end-date">Submitted Before:</label>
+      <input type="date" id="report-filter-end-date" name="endDate">
+    </div>
+
+    <br>
+    <div class="form-actions">
+      <button type="button" id="generate-report-btn" class="admin-button">Generate Report</button>
+      <!-- This link will be disabled initially and enabled by JS -->
+      <a id="download-csv-link" href="#" class="admin-button disabled" download>Download as CSV</a>
+    </div>
+  </form>
+</div>
+
+    <div id="report-summary" class="admin-section">
+  <p>Select filters and click "Generate Report" to see results.</p>
+</div>
+
+<div id="report-chart-container" class="admin-section" style="width: 100%; height: 500px;">
+  
+</div>
+
+</body>
+
+<script>
+  // Pass the species stats to the script
+  const speciesStats = <%- JSON.stringify(speciesStats) %>;
+</script>
+
+<!-- Script to manage charts displayed on page-->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    google.charts.load('current', {'packages':['corechart']});
+
+    // UI references
+    const speciesFilter = document.getElementById('report-filter-species');
+    const conditionFilter = document.getElementById('report-filter-condition');
+    const verifiedFilter = document.getElementById('report-filter-verified');
+    const ageFilter = document.getElementById('report-filter-age');
+    const startDateInput = document.getElementById('report-filter-start-date');
+    const endDateInput = document.getElementById('report-filter-end-date');
+    const generateBtn = document.getElementById('generate-report-btn');
+    const downloadLink = document.getElementById('download-csv-link');
+    const summaryContainer = document.getElementById('report-summary');
+    const chartContainer = document.getElementById('report-chart-container');
+    
+    // Populate dropdowns
+    function populateDropdown(selectId, endpoint, valueKey, textKey, defaultText) {
+        fetch(endpoint).then(res => res.json()).then(data => {
+            const dropdown = document.getElementById(selectId);
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item[valueKey];
+                option.textContent = item[textKey];
+                dropdown.appendChild(option);
+            });
+        });
+    }
+    populateDropdown('report-filter-species', '/api/species', 'species_id', 'common_name');
+    populateDropdown('report-filter-condition', '/api/condition', 'condition_id', 'condition_level');
+    populateDropdown('report-filter-age', '/api/age', 'age_id', 'age_desc');
+
+    //Main logic
+    generateBtn.addEventListener('click', async () => {
+      // Collect all filter values
+      const speciesId = speciesFilter.value;
+      const conditionId = conditionFilter.value;
+      const isVerified = verifiedFilter.value;
+      const ageId = ageFilter.value;
+      const startDate = startDateInput.value;
+      const endDate = endDateInput.value;
+
+      // Build the URL with all parameters
+      const url = new URL('/admin/reports/data', window.location.origin);
+      if (speciesId) url.searchParams.append('species_id', speciesId);
+      if (conditionId) url.searchParams.append('condition_id', conditionId);
+      if (isVerified) url.searchParams.append('is_verified', isVerified);
+      if (ageId) url.searchParams.append('age_id', ageId);
+      if (startDate) url.searchParams.append('startDate', startDate);
+      if (endDate) url.searchParams.append('endDate', endDate);
+      
+      // Update UI for loading state
+      summaryContainer.innerHTML = '<p>Loading report...</p>';
+      chartContainer.innerHTML = '';
+      downloadLink.classList.add('disabled');
+
+      // Fetch the filtered data
+      const res = await fetch(url);
+      const data = await res.json();
+
+      // Update summary and draw chart
+      summaryContainer.innerHTML = `<p>Found <strong>${data.length}</strong> trees matching the criteria.</p>`;
+      drawChart(data);
+
+      // Enable the download link with the same parameters
+      const csvUrl = new URL('/admin/reports/download/csv', window.location.origin);
+      csvUrl.search = url.search; // Simply copy all parameters
+      downloadLink.href = csvUrl.toString();
+      downloadLink.classList.remove('disabled');
+    });
+
+    function drawChart(trees) {
+        if (trees.length === 0) return;
+        // Example: Charting species breakdown of the filtered results
+        const speciesCounts = trees.reduce((acc, t) => {
+            const species = t.common_name || 'Unknown';
+            acc[species] = (acc[species] || 0) + 1;
+            return acc;
+        }, {});
+        const dataArray = [['Species', 'Count']];
+        for (const [species, count] of Object.entries(speciesCounts)) { dataArray.push([species, count]); }
+        const data = google.visualization.arrayToDataTable(dataArray);
+        const options = { title: 'Species Breakdown of Filtered Trees', pieHole: 0.4 };
+        const chart = new google.visualization.PieChart(chartContainer);
+        chart.draw(data, options);
+    }
+  });
+</script>
+
+<script>
+  // Local Storage Management for 'Loadouts'
+document.addEventListener('DOMContentLoaded', () => {
+    const LOCAL_STORAGE_KEY = 'treeAppReportLoadouts';
+
+    // UI Elements for Loadouts
+    const loadoutSelect = document.getElementById('loadout-select');
+    const loadLoadoutBtn = document.getElementById('load-loadout-btn');
+    const deleteLoadoutBtn = document.getElementById('delete-loadout-btn');
+    const saveLoadoutNameInput = document.getElementById('save-loadout-name');
+    const saveLoadoutBtn = document.getElementById('save-loadout-btn');
+
+    // Filter Form Elements
+    const form = document.getElementById('report-filter-form');
+    const fields = ['species_id', 'condition_id', 'is_verified', 'age_id', 'startDate', 'endDate'];
+
+    // --- Core Functions ---
+    function getLoadouts() {
+        const loadouts = localStorage.getItem(LOCAL_STORAGE_KEY);
+        return loadouts ? JSON.parse(loadouts) : [];
+    }
+
+    // Save Loadouts to Local Storage
+    function saveLoadouts(loadouts) {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(loadouts));
+    }
+
+    // Populate the loadout dropdown with saved configurations
+    function populateLoadoutDropdown() {
+        const loadouts = getLoadouts();
+        loadoutSelect.innerHTML = '<option value="">-- Select a Configuration --</option>'; // Reset
+        loadouts.forEach(loadout => {
+            const option = document.createElement('option');
+            option.value = loadout.name;
+            option.textContent = loadout.name;
+            loadoutSelect.appendChild(option);
+        });
+    }
+
+    // --- Event Listeners ---
+
+    // SAVE button
+    saveLoadoutBtn.addEventListener('click', () => {
+        const name = saveLoadoutNameInput.value.trim();
+        if (!name) {
+            alert('Please enter a name for the configuration.');
+            return;
+        }
+
+        //Fetches existing loadouts and checks if the name already exists
+        const loadouts = getLoadouts();
+        if (loadouts.some(l => l.name === name)) {
+            if (!confirm(`A configuration named "${name}" already exists. Overwrite it?`)) {
+                return;
+            }
+        }
+
+        // Create a new loadout object with the current filter values
+        const newLoadout = { name, filters: {} };
+        fields.forEach(fieldId => {
+            // Translate form name to field ID if different
+            const inputName = fieldId === 'species_id' ? 'species_id' :
+                              fieldId === 'condition_id' ? 'condition_id' :
+                              fieldId === 'is_verified' ? 'is_verified' :
+                              fieldId === 'age_id' ? 'age_id' :
+                              fieldId === 'startDate' ? 'startDate' : 'endDate';
+            const element = form.elements[inputName];
+            if(element) {
+              newLoadout.filters[fieldId] = element.value;
+            }
+        });
+
+        // Remove existing if it's an overwrite, then add the new one
+        const updatedLoadouts = loadouts.filter(l => l.name !== name);
+        updatedLoadouts.push(newLoadout);
+        
+        saveLoadouts(updatedLoadouts);
+        populateLoadoutDropdown();
+        alert(`Loadout "${name}" saved!`);
+        saveLoadoutNameInput.value = ''; // Clear input
+    });
+
+    // LOAD button
+    loadLoadoutBtn.addEventListener('click', () => {
+        const selectedName = loadoutSelect.value;
+        if (!selectedName) {
+            alert('Please select a configuration to load.');
+            return;
+        }
+
+        const loadouts = getLoadouts();
+        const loadoutToLoad = loadouts.find(l => l.name === selectedName);
+
+        if (loadoutToLoad) {
+            fields.forEach(fieldId => {
+                const value = loadoutToLoad.filters[fieldId];
+                const element = form.elements[fieldId];
+                if(element) {
+                  element.value = value || ''; // Set to value or empty string
+                }
+            });
+            alert(`Configuration "${selectedName}" has been loaded into the form.`);
+        }
+    });
+
+    // DELETE button
+    deleteLoadoutBtn.addEventListener('click', () => {
+        const selectedName = loadoutSelect.value;
+        if (!selectedName) {
+            alert('Please select a configuration to delete.');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete the "${selectedName}" configuration?`)) {
+            let loadouts = getLoadouts();
+            loadouts = loadouts.filter(l => l.name !== selectedName);
+            saveLoadouts(loadouts);
+            populateLoadoutDropdown();
+            alert(`Loadout "${selectedName}" deleted.`);
+        }
+    });
+
+
+    // --- Initial Page Load ---
+    populateLoadoutDropdown();
+});
+</script>
+
+</html>
